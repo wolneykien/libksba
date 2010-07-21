@@ -35,10 +35,47 @@ if test x"$1" = x"--force"; then
   shift
 fi
 
+# Begin list of optional variables sourced from ~/.gnupg-autogen.rc
+w32_toolprefixes=
+w32_extraoptions=
+w32ce_toolprefixes=
+w32ce_extraoptions=
+amd64_toolprefixes=
+# End list of optional variables sourced from ~/.gnupg-autogen.rc
+# What follows are variables which are sourced but default to 
+# environment variables or lacking them hardcoded values.
+#w32root=
+#w32ce_root=
+#amd64root=
+
+if [ -f "$HOME/.gnupg-autogen.rc" ]; then
+    echo "sourcing extra definitions from $HOME/.gnupg-autogen.rc"
+    . "$HOME/.gnupg-autogen.rc"
+fi
+
+# Convenience option to use certain configure options for some hosts.
+myhost="" 
+myhostsub=""
+case "$1" in
+    --build-w32)
+        myhost="w32"
+        ;;
+    --build-w32ce)
+        myhost="w32"
+        myhostsub="ce"
+        ;;
+    --build*)
+        echo "**Error**: invalid build option $1" >&2
+        exit 1
+        ;;
+    *)
+        ;;
+esac
+
 
 # ***** W32 build script *******
 # Used to cross-compile for Windows.
-if test "$1" = "--build-w32"; then
+if [ "$myhost" = "w32" ]; then
     tmp=`dirname $0`
     tsdir=`cd "$tmp"; pwd`
     shift
@@ -48,11 +85,21 @@ if test "$1" = "--build-w32"; then
     fi
     build=`$tsdir/config.guess`
 
-    [ -z "$w32root" ] && w32root="$HOME/w32root"
+    case $myhostsub in
+        ce)
+          w32root="$w32ce_root"
+          [ -z "$w32root" ] && w32root="$HOME/w32ce_root"
+          toolprefixes="arm-mingw32ce"
+          ;;
+        *)
+          [ -z "$w32root" ] && w32root="$HOME/w32root"
+          toolprefixes="i586-mingw32msvc i386-mingw32msvc"
+          ;;
+    esac
     echo "Using $w32root as standard install directory" >&2
     
     crossbindir=
-    for host in i586-mingw32msvc i386-mingw32msvc mingw32; do
+    for host in $toolprefixes; do
         if ${host}-gcc --version >/dev/null 2>&1 ; then
             crossbindir=/usr/${host}/bin
             conf_CC="CC=${host}-gcc"
@@ -61,8 +108,10 @@ if test "$1" = "--build-w32"; then
     done
     if [ -z "$crossbindir" ]; then
         echo "Cross compiler kit not installed" >&2
-        echo "Under Debian GNU/Linux, you may install it using" >&2
-        echo "  apt-get install mingw32 mingw32-runtime mingw32-binutils" >&2 
+        if [ -z "$sub" ]; then 
+          echo "Under Debian GNU/Linux, you may install it using" >&2
+          echo "  apt-get install mingw32 mingw32-runtime mingw32-binutils" >&2 
+        fi
         echo "Stop." >&2
         exit 1
     fi

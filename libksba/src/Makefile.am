@@ -20,19 +20,20 @@
 
 asn1_modules = tmttv2.asn cms.asn
 
+buildtool_src = asn1-gentables.c gen-help.c gen-help.h
 EXTRA_DIST = ksba-config.in $(asn1_modules) ksba.m4 libksba.vers libksba.def \
-	     asn1-parse.c asn1-tables.c
+	     asn1-parse.c asn1-tables.c $(buildtool_src)
 BUILT_SOURCES = asn1-parse.c asn1-tables.c
 bin_SCRIPTS = ksba-config
 include_HEADERS = ksba.h
 lib_LTLIBRARIES = libksba.la
-
-if ! CROSS_COMPILING
-noinst_PROGRAMS = asn1-gentables ber-dump
-endif
+noinst_PROGRAMS = ber-dump
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = ksba.m4
+
+CLEANFILES = asn1-gentables
+DISTCLEANFILES = asn1-tables.c
 
 AM_CPPFLAGS =  -I$(top_builddir)/gl -I$(top_srcdir)/gl
 AM_CFLAGS = $(GPG_ERROR_CFLAGS)
@@ -46,18 +47,18 @@ endif
 
 
 if HAVE_W32_SYSTEM
-LTRCCOMPILE = $(LIBTOOL) --mode=compile $(RC) \
-     `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) | \
-     sed -e 's/-I/--include-dir /g;s/-D/--define /g'`
+RCCOMPILE = $(RC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(libksba_la_CPPFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS)
+LTRCCOMPILE = $(LIBTOOL) --mode=compile --tag=RC $(RCCOMPILE)
+
+SUFFIXES = .rc .lo
 
 .rc.lo:
-	$(LTRCCOMPILE) -i $< -o $@
+	$(LTRCCOMPILE) -i "$<" -o "$@"
 
 ksba_res = versioninfo.lo
-ksba_res_ldflag = -Wl,.libs/versioninfo.o
 no_undefined = -no-undefined
 export_symbols = -export-symbols $(srcdir)/libksba.def
-ksba_deps = $(ksba_res) libksba.def
 
 install-def-file:
 	$(INSTALL) $(srcdir)/libksba.def $(DESTDIR)$(libdir)/libksba.def
@@ -65,9 +66,10 @@ install-def-file:
 uninstall-def-file:
 	-rm $(DESTDIR)$(libdir)/libksba.def
 
+ksba_deps = $(ksba_res) libksba.def
+
 else !HAVE_W32_SYSTEM
 ksba_res =
-ksba_ldflag =
 no_undefined =
 export_symbols =
 ksba_deps =
@@ -76,12 +78,12 @@ uninstall-def-file:
 endif !HAVE_W32_SYSTEM
 
 
-libksba_la_LDFLAGS = $(gcrypt_res_ldflag) $(no_undefined) $(export_symbols) \
+libksba_la_LDFLAGS = $(no_undefined) $(export_symbols) \
       $(libksba_version_script_cmd) -version-info \
       @LIBKSBA_LT_CURRENT@:@LIBKSBA_LT_REVISION@:@LIBKSBA_LT_AGE@
 libksba_la_INCLUDES = -I$(top_srcdir)/lib 
 libksba_la_DEPENDENCIES = $(srcdir)/libksba.vers $(ksba_deps)
-libksba_la_LIBADD = @LTLIBOBJS@ @GPG_ERROR_LIBS@
+libksba_la_LIBADD = $(ksba_res) @LTLIBOBJS@ @GPG_ERROR_LIBS@
 
 
 libksba_la_SOURCES = \
@@ -105,27 +107,25 @@ libksba_la_SOURCES = \
 	sexp-parse.h \
 	asn1-tables.c
 
-asn1_gentables_SOURCES = asn1-gentables.c asn1-parse.c asn1-func.c oid.c util.c
-asn1_gentables_LDADD = $(GPG_ERROR_LIBS) ../gl/libgnu.la
-# Note that we need to use per-target flags to force renaming of the 
-# object files to avoid clashes with libtool.
-asn1_gentables_CFLAGS = $(AM_CFLAGS)
-
 ber_dump_SOURCES = ber-dump.c \
                    ber-decoder.c ber-help.c reader.c writer.c asn1-parse.c \
                    asn1-func.c oid.c util.c
 ber_dump_LDADD = $(GPG_ERROR_LIBS) ../gl/libgnu.la
 ber_dump_CFLAGS = $(AM_CFLAGS)
 
-asn1-parse.c : asn1-func.h
+asn1-parse.c : asn1-func.h gen-help.h
 
-if ! CROSS_COMPILING
-asn1-tables.c : $(asn1_modules)
-	$(MAKE) $(AM_MAKEFLAGS) asn1-gentables
+asn1-gentables: asn1-gentables.c asn1-parse.c asn1-func.c gen-help.c gen-help.h
+	$(CC_FOR_BUILD) -I$(srcdir) -DBUILD_GENTOOLS -o $@ \
+		$(srcdir)/asn1-gentables.c \
+                `test -f 'asn1-parse.c' || echo '$(srcdir)/'`asn1-parse.c  \
+                $(srcdir)/asn1-func.c      \
+                $(srcdir)/gen-help.c
+
+asn1-tables.c : $(asn1_modules) asn1-gentables
 	@set -e; list=""; \
 	  for file in $(asn1_modules); do list="$$list $(srcdir)/$$file";done;\
 	  ./asn1-gentables $$list > asn1-tables.c	
-endif
 
 
 install-data-local: install-def-file

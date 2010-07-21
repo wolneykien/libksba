@@ -793,7 +793,7 @@ static const static_asn cms_asn1_tab[] = {
 };
 
 static const char string_table[] = {
-'\0',
+  '\0',
   'u','b','-','d','o','m','a','i','n','-','d','e','f','i','n','e',
   'd','-','a','t','t','r','i','b','u','t','e','-','v','a','l','u',
   'e','-','l','e','n','g','t','h','\0',
@@ -1297,7 +1297,7 @@ static const char string_table[] = {
   'I','V','\0',
   'i','v','\0',
   '8','\0',
-'\0' };
+  '\0' };
 /* (371 strings) */
 
 

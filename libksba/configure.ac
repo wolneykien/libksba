@@ -24,7 +24,7 @@ min_automake_version="1.10"
 # Remember to change the version number immediately *after* a release.
 # Set my_issvn to "yes" for non-released code.  Remember to run an
 # "svn up" and "autogen.sh" right before creating a distribution.
-m4_define([my_version], [1.0.5])
+m4_define([my_version], [1.0.8])
 m4_define([my_issvn], [no])
 
 m4_define([svn_revision], m4_esyscmd([printf "%d" $(svn info 2>/dev/null \
@@ -40,13 +40,13 @@ AC_INIT([libksba],
 # Please remember to document interface changes in the NEWS file.
 LIBKSBA_LT_CURRENT=17
 LIBKSBA_LT_AGE=9
-LIBKSBA_LT_REVISION=5
+LIBKSBA_LT_REVISION=8
 #-------------------
 # If the API is changed in an incompatible way: increment the next counter.
 KSBA_CONFIG_API_VERSION=1
 
 
-NEED_GPG_ERROR_VERSION=1.4
+NEED_GPG_ERROR_VERSION=1.8
 
 BUILD_REVISION=svn_revision
 PACKAGE=$PACKAGE_NAME
@@ -55,11 +55,15 @@ VERSION=$PACKAGE_VERSION
 AC_CONFIG_SRCDIR([src/ksba.h])
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 AM_CONFIG_HEADER(config.h)
+AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 AB_INIT
 
 AC_GNU_SOURCE
 
+LT_PREREQ([2.2.6])
+LT_INIT([win32-dll disable-static])
+LT_LANG([Windows Resource])
 
 AM_MAINTAINER_MODE
 
@@ -96,9 +100,18 @@ gl_EARLY
 AC_PROG_YACC
 AC_C_INLINE
 
-AC_LIBTOOL_WIN32_DLL
-AC_LIBTOOL_RC
-AM_PROG_LIBTOOL
+# We need to compile and run a program on the build machine.
+#   The AC_PROG_CC_FOR_BUILD macro in the AC archive is broken for
+#   autoconf 2.57.
+AC_MSG_CHECKING(for cc for build)
+if test "$cross_compiling" = "yes"; then
+  CC_FOR_BUILD="${CC_FOR_BUILD-cc}"
+else
+  CC_FOR_BUILD="${CC_FOR_BUILD-$CC}"
+fi
+AC_MSG_RESULT($CC_FOR_BUILD)
+AC_ARG_VAR(CC_FOR_BUILD,[build system C compiler])
+
 
 # This is handy for debugging so the compiler doesn't rearrange
 # things and eliminate variables.
@@ -162,7 +175,12 @@ fi
 
 # Setup some stuff depending on host.
 have_w32_system=no
+have_w32ce_system=no
 case "${host}" in
+    *-*-mingw32ce*)
+      have_w32_system=yes
+      have_w32ce_system=yes
+      ;;
     *-*-mingw32*)
       have_w32_system=yes
       ;;
@@ -171,8 +189,12 @@ case "${host}" in
 esac
 if test "$have_w32_system" = yes; then
    AC_DEFINE(HAVE_W32_SYSTEM,1, [Defined if we run on a W32 API based system])
+   if test "$have_w32ce_system" = yes; then
+     AC_DEFINE(HAVE_W32CE_SYSTEM,1,[Defined if we run on WindowsCE])
+   fi
 fi
 AM_CONDITIONAL(HAVE_W32_SYSTEM, test "$have_w32_system" = yes)
+AM_CONDITIONAL(HAVE_W32CE_SYSTEM, test "$have_w32ce_system" = yes)
 
 
 # For some systems we know that we have ld_version scripts.  
@@ -307,7 +329,7 @@ GNUPG_CHECK_TYPEDEF(u32, HAVE_U32_TYPEDEF)
 
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memmove strchr strtol strtoul stpcpy gmtime_r])
+AC_CHECK_FUNCS([memmove strchr strtol strtoul stpcpy gmtime_r getenv])
 
 
 # GNUlib checks
@@ -324,7 +346,7 @@ AC_SUBST(KSBA_CONFIG_CFLAGS)
 AC_SUBST(KSBA_CONFIG_API_VERSION)
 
 # The Makefiles need to know about cross compiling
-AM_CONDITIONAL(CROSS_COMPILING, test x$cross_compiling = xyes)
+AM_CONDITIONAL(CROSS_COMPILING, test x$cross_compiling != xno)
 
 
 # Generate extended version information for W32.
@@ -361,11 +383,3 @@ echo "
         Platform:  $host
 
 "
-if test x$cross_compiling = xyes; then
-echo "Hint: If you encounter make problems like
-  \"No rule to make target 'asn1-tables.c'\"
-you should first do a native build without installing
-the software, then a \"make distclean\" and then
-run the cross compilation again.
-"
-fi

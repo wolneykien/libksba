@@ -150,7 +150,9 @@
 /* Copy the first part of user declarations.  */
 #line 30 "asn1-parse.y"
 
-#include <config.h>
+#ifndef BUILD_GENTOOLS
+# include <config.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -158,8 +160,13 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "util.h"
-#include "ksba.h"
+#ifdef BUILD_GENTOOLS
+# include "gen-help.h"
+#else
+# include "util.h"
+# include "ksba.h"
+#endif
+
 #include "asn1-parse.h"
 #include "asn1-func.h"
 
@@ -205,14 +212,14 @@ struct parser_control_s {
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 76 "asn1-parse.y"
+#line 83 "asn1-parse.y"
 typedef union YYSTYPE {
   unsigned int constant;
   char str[MAX_STRING_LENGTH];
   AsnNode node;
 } YYSTYPE;
 /* Line 186 of yacc.c.  */
-#line 216 "asn1-parse.c"
+#line 223 "asn1-parse.c"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -221,7 +228,7 @@ typedef union YYSTYPE {
 
 
 /* Copy the second part of user declarations.  */
-#line 82 "asn1-parse.y"
+#line 89 "asn1-parse.y"
 
 static AsnNode new_node (struct parser_control_s *parsectl, node_type_t type);
 #define NEW_NODE(a)  (new_node (PARSECTL, (a)))
@@ -238,7 +245,7 @@ static void yyerror (const char *s);
 
 
 /* Line 214 of yacc.c.  */
-#line 242 "asn1-parse.c"
+#line 249 "asn1-parse.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -455,18 +462,18 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short yyrline[] =
 {
-       0,   162,   162,   163,   166,   167,   170,   177,   178,   181,
-     182,   185,   186,   189,   194,   202,   203,   210,   215,   226,
-     231,   239,   241,   248,   249,   250,   253,   259,   267,   269,
-     274,   281,   286,   291,   298,   302,   308,   319,   325,   329,
-     335,   341,   350,   354,   360,   364,   372,   373,   380,   381,
-     388,   390,   397,   399,   406,   407,   414,   416,   423,   424,
-     433,   434,   435,   436,   437,   438,   439,   445,   453,   457,
-     464,   468,   476,   484,   490,   495,   502,   503,   504,   505,
-     506,   507,   508,   509,   510,   511,   512,   513,   514,   520,
-     524,   535,   539,   546,   553,   560,   562,   569,   574,   579,
-     588,   593,   598,   607,   614,   618,   630,   637,   644,   653,
-     662,   663,   666,   668,   675,   684,   685,   698,   699,   702
+       0,   169,   169,   170,   173,   174,   177,   184,   185,   188,
+     189,   192,   193,   196,   201,   209,   210,   217,   222,   233,
+     238,   246,   248,   255,   256,   257,   260,   266,   274,   276,
+     281,   288,   293,   298,   305,   309,   315,   326,   332,   336,
+     342,   348,   357,   361,   367,   371,   379,   380,   387,   388,
+     395,   397,   404,   406,   413,   414,   421,   423,   430,   431,
+     440,   441,   442,   443,   444,   445,   446,   452,   460,   464,
+     471,   475,   483,   491,   497,   502,   509,   510,   511,   512,
+     513,   514,   515,   516,   517,   518,   519,   520,   521,   527,
+     531,   542,   546,   553,   560,   567,   569,   576,   581,   586,
+     595,   600,   605,   614,   621,   625,   637,   644,   651,   660,
+     669,   670,   673,   675,   682,   691,   692,   705,   706,   709
 };
 #endif
 
@@ -1316,17 +1323,17 @@ yyreduce:
   switch (yyn)
     {
         case 4:
-#line 166 "asn1-parse.y"
+#line 173 "asn1-parse.y"
     { strcpy(yyval.str,yyvsp[0].str); }
     break;
 
   case 5:
-#line 167 "asn1-parse.y"
+#line 174 "asn1-parse.y"
     { strcpy(yyval.str,yyvsp[0].str); }
     break;
 
   case 6:
-#line 171 "asn1-parse.y"
+#line 178 "asn1-parse.y"
     {
                   strcpy(yyval.str,"-");
                   strcat(yyval.str,yyvsp[0].str);
@@ -1334,37 +1341,37 @@ yyreduce:
     break;
 
   case 7:
-#line 177 "asn1-parse.y"
+#line 184 "asn1-parse.y"
     { strcpy(yyval.str,yyvsp[0].str); }
     break;
 
   case 8:
-#line 178 "asn1-parse.y"
+#line 185 "asn1-parse.y"
     { strcpy(yyval.str,yyvsp[0].str); }
     break;
 
   case 9:
-#line 181 "asn1-parse.y"
+#line 188 "asn1-parse.y"
     {strcpy(yyval.str,yyvsp[0].str);}
     break;
 
   case 10:
-#line 182 "asn1-parse.y"
+#line 189 "asn1-parse.y"
     {strcpy(yyval.str,yyvsp[0].str);}
     break;
 
   case 11:
-#line 185 "asn1-parse.y"
+#line 192 "asn1-parse.y"
     {strcpy(yyval.str,yyvsp[0].str);}
     break;
 
   case 12:
-#line 186 "asn1-parse.y"
+#line 193 "asn1-parse.y"
     {strcpy(yyval.str,yyvsp[0].str);}
     break;
 
   case 13:
-#line 190 "asn1-parse.y"
+#line 197 "asn1-parse.y"
     {
                           yyval.node = NEW_NODE (TYPE_CONSTANT); 
                           set_str_value (yyval.node, yyvsp[-1].str);
@@ -1372,7 +1379,7 @@ yyreduce:
     break;
 
   case 14:
-#line 195 "asn1-parse.y"
+#line 202 "asn1-parse.y"
     {
                           yyval.node = NEW_NODE (TYPE_CONSTANT); 
                           set_name (yyval.node, yyvsp[-3].str); 
@@ -1381,12 +1388,12 @@ yyreduce:
     break;
 
   case 15:
-#line 202 "asn1-parse.y"
+#line 209 "asn1-parse.y"
     { yyval.node=yyvsp[0].node; }
     break;
 
   case 16:
-#line 204 "asn1-parse.y"
+#line 211 "asn1-parse.y"
     {
                     yyval.node = yyvsp[-2].node;
                     append_right (yyvsp[-2].node, yyvsp[0].node);
@@ -1394,7 +1401,7 @@ yyreduce:
     break;
 
   case 17:
-#line 211 "asn1-parse.y"
+#line 218 "asn1-parse.y"
     {
                           yyval.node = NEW_NODE (TYPE_IDENTIFIER);
                           set_name(yyval.node,yyvsp[0].str);
@@ -1402,7 +1409,7 @@ yyreduce:
     break;
 
   case 18:
-#line 216 "asn1-parse.y"
+#line 223 "asn1-parse.y"
     {
                           AsnNode node;
 
@@ -1414,7 +1421,7 @@ yyreduce:
     break;
 
   case 19:
-#line 227 "asn1-parse.y"
+#line 234 "asn1-parse.y"
     { 
                    yyval.node = NEW_NODE (TYPE_CONSTANT); 
                    set_str_value (yyval.node, yyvsp[0].str);
@@ -1422,7 +1429,7 @@ yyreduce:
     break;
 
   case 20:
-#line 232 "asn1-parse.y"
+#line 239 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_CONSTANT);
                    set_name (yyval.node, yyvsp[-3].str); 
@@ -1431,12 +1438,12 @@ yyreduce:
     break;
 
   case 21:
-#line 240 "asn1-parse.y"
+#line 247 "asn1-parse.y"
     { yyval.node=yyvsp[0].node;}
     break;
 
   case 22:
-#line 242 "asn1-parse.y"
+#line 249 "asn1-parse.y"
     {
                           yyval.node=yyvsp[-1].node;
                           append_right (yyval.node, yyvsp[0].node);
@@ -1444,22 +1451,22 @@ yyreduce:
     break;
 
   case 23:
-#line 248 "asn1-parse.y"
+#line 255 "asn1-parse.y"
     { yyval.constant = CLASS_UNIVERSAL;   }
     break;
 
   case 24:
-#line 249 "asn1-parse.y"
+#line 256 "asn1-parse.y"
     { yyval.constant = CLASS_PRIVATE;     }
     break;
 
   case 25:
-#line 250 "asn1-parse.y"
+#line 257 "asn1-parse.y"
     { yyval.constant = CLASS_APPLICATION; }
     break;
 
   case 26:
-#line 254 "asn1-parse.y"
+#line 261 "asn1-parse.y"
     {
                   yyval.node = NEW_NODE (TYPE_TAG); 
                   yyval.node->flags.class = CLASS_CONTEXT;
@@ -1468,7 +1475,7 @@ yyreduce:
     break;
 
   case 27:
-#line 260 "asn1-parse.y"
+#line 267 "asn1-parse.y"
     {
                   yyval.node = NEW_NODE (TYPE_TAG);
                   yyval.node->flags.class = yyvsp[-2].constant;
@@ -1477,12 +1484,12 @@ yyreduce:
     break;
 
   case 28:
-#line 268 "asn1-parse.y"
+#line 275 "asn1-parse.y"
     { yyval.node = yyvsp[0].node; }
     break;
 
   case 29:
-#line 270 "asn1-parse.y"
+#line 277 "asn1-parse.y"
     {
            yyval.node = yyvsp[-1].node;
            yyval.node->flags.explicit = 1;
@@ -1490,7 +1497,7 @@ yyreduce:
     break;
 
   case 30:
-#line 275 "asn1-parse.y"
+#line 282 "asn1-parse.y"
     {
            yyval.node = yyvsp[-1].node;
            yyval.node->flags.implicit = 1;
@@ -1498,7 +1505,7 @@ yyreduce:
     break;
 
   case 31:
-#line 282 "asn1-parse.y"
+#line 289 "asn1-parse.y"
     {
                  yyval.node = NEW_NODE (TYPE_DEFAULT); 
                  set_str_value (yyval.node, yyvsp[0].str);
@@ -1506,7 +1513,7 @@ yyreduce:
     break;
 
   case 32:
-#line 287 "asn1-parse.y"
+#line 294 "asn1-parse.y"
     {
                  yyval.node = NEW_NODE (TYPE_DEFAULT);
                  yyval.node->flags.is_true = 1;
@@ -1514,7 +1521,7 @@ yyreduce:
     break;
 
   case 33:
-#line 292 "asn1-parse.y"
+#line 299 "asn1-parse.y"
     {
                  yyval.node = NEW_NODE (TYPE_DEFAULT);
                  yyval.node->flags.is_false = 1;
@@ -1522,14 +1529,14 @@ yyreduce:
     break;
 
   case 34:
-#line 299 "asn1-parse.y"
+#line 306 "asn1-parse.y"
     {
                  yyval.node = NEW_NODE (TYPE_INTEGER);
                }
     break;
 
   case 35:
-#line 303 "asn1-parse.y"
+#line 310 "asn1-parse.y"
     {
                  yyval.node = NEW_NODE (TYPE_INTEGER);
                  yyval.node->flags.has_list = 1;
@@ -1538,7 +1545,7 @@ yyreduce:
     break;
 
   case 36:
-#line 309 "asn1-parse.y"
+#line 316 "asn1-parse.y"
     {
                  yyval.node = NEW_NODE (TYPE_INTEGER);
                  yyval.node->flags.has_min_max = 1;
@@ -1550,28 +1557,28 @@ yyreduce:
     break;
 
   case 37:
-#line 320 "asn1-parse.y"
+#line 327 "asn1-parse.y"
     {
                 yyval.node = NEW_NODE (TYPE_BOOLEAN);
               }
     break;
 
   case 38:
-#line 326 "asn1-parse.y"
+#line 333 "asn1-parse.y"
     {
             yyval.node = NEW_NODE (TYPE_UTC_TIME);
           }
     break;
 
   case 39:
-#line 330 "asn1-parse.y"
+#line 337 "asn1-parse.y"
     { 
             yyval.node = NEW_NODE (TYPE_GENERALIZED_TIME);
           }
     break;
 
   case 40:
-#line 336 "asn1-parse.y"
+#line 343 "asn1-parse.y"
     {
                yyval.node = NEW_NODE (TYPE_SIZE);
                yyval.node->flags.one_param = 1;
@@ -1580,7 +1587,7 @@ yyreduce:
     break;
 
   case 41:
-#line 342 "asn1-parse.y"
+#line 349 "asn1-parse.y"
     {
                yyval.node = NEW_NODE (TYPE_SIZE);
                yyval.node->flags.has_min_max = 1;
@@ -1590,28 +1597,28 @@ yyreduce:
     break;
 
   case 42:
-#line 351 "asn1-parse.y"
+#line 358 "asn1-parse.y"
     {
                yyval.node=yyvsp[0].node;
              }
     break;
 
   case 43:
-#line 355 "asn1-parse.y"
+#line 362 "asn1-parse.y"
     {
                yyval.node=yyvsp[-1].node;
              }
     break;
 
   case 44:
-#line 361 "asn1-parse.y"
+#line 368 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_OCTET_STRING);
                      }
     break;
 
   case 45:
-#line 365 "asn1-parse.y"
+#line 372 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_OCTET_STRING);
                        yyval.node->flags.has_size = 1;
@@ -1620,12 +1627,12 @@ yyreduce:
     break;
 
   case 46:
-#line 372 "asn1-parse.y"
+#line 379 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_UTF8_STRING); }
     break;
 
   case 47:
-#line 374 "asn1-parse.y"
+#line 381 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_UTF8_STRING);
                        yyval.node->flags.has_size = 1;
@@ -1634,12 +1641,12 @@ yyreduce:
     break;
 
   case 48:
-#line 380 "asn1-parse.y"
+#line 387 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_NUMERIC_STRING); }
     break;
 
   case 49:
-#line 382 "asn1-parse.y"
+#line 389 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_NUMERIC_STRING);
                        yyval.node->flags.has_size = 1;
@@ -1648,12 +1655,12 @@ yyreduce:
     break;
 
   case 50:
-#line 389 "asn1-parse.y"
+#line 396 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_PRINTABLE_STRING); }
     break;
 
   case 51:
-#line 391 "asn1-parse.y"
+#line 398 "asn1-parse.y"
     { 
                           yyval.node = NEW_NODE (TYPE_PRINTABLE_STRING);
                           yyval.node->flags.has_size = 1;
@@ -1662,12 +1669,12 @@ yyreduce:
     break;
 
   case 52:
-#line 398 "asn1-parse.y"
+#line 405 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_TELETEX_STRING); }
     break;
 
   case 53:
-#line 400 "asn1-parse.y"
+#line 407 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_TELETEX_STRING);
                        yyval.node->flags.has_size = 1;
@@ -1676,12 +1683,12 @@ yyreduce:
     break;
 
   case 54:
-#line 406 "asn1-parse.y"
+#line 413 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_IA5_STRING); }
     break;
 
   case 55:
-#line 408 "asn1-parse.y"
+#line 415 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_IA5_STRING);
                        yyval.node->flags.has_size = 1;
@@ -1690,12 +1697,12 @@ yyreduce:
     break;
 
   case 56:
-#line 415 "asn1-parse.y"
+#line 422 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_UNIVERSAL_STRING); }
     break;
 
   case 57:
-#line 417 "asn1-parse.y"
+#line 424 "asn1-parse.y"
     {
                            yyval.node = NEW_NODE (TYPE_UNIVERSAL_STRING);
                            yyval.node->flags.has_size = 1;
@@ -1704,12 +1711,12 @@ yyreduce:
     break;
 
   case 58:
-#line 423 "asn1-parse.y"
+#line 430 "asn1-parse.y"
     { yyval.node = NEW_NODE (TYPE_BMP_STRING); }
     break;
 
   case 59:
-#line 425 "asn1-parse.y"
+#line 432 "asn1-parse.y"
     {
                        yyval.node = NEW_NODE (TYPE_BMP_STRING);
                        yyval.node->flags.has_size = 1;
@@ -1718,7 +1725,7 @@ yyreduce:
     break;
 
   case 67:
-#line 446 "asn1-parse.y"
+#line 453 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_CONSTANT);
                    set_name (yyval.node, yyvsp[-3].str); 
@@ -1727,14 +1734,14 @@ yyreduce:
     break;
 
   case 68:
-#line 454 "asn1-parse.y"
+#line 461 "asn1-parse.y"
     {
                         yyval.node=yyvsp[0].node;
                       }
     break;
 
   case 69:
-#line 458 "asn1-parse.y"
+#line 465 "asn1-parse.y"
     {
                         yyval.node=yyvsp[-2].node;
                         append_right (yyval.node, yyvsp[0].node);
@@ -1742,14 +1749,14 @@ yyreduce:
     break;
 
   case 70:
-#line 465 "asn1-parse.y"
+#line 472 "asn1-parse.y"
     {
                      yyval.node = NEW_NODE (TYPE_BIT_STRING);
                    }
     break;
 
   case 71:
-#line 469 "asn1-parse.y"
+#line 476 "asn1-parse.y"
     {
                      yyval.node = NEW_NODE (TYPE_BIT_STRING);
                      yyval.node->flags.has_list = 1;
@@ -1758,7 +1765,7 @@ yyreduce:
     break;
 
   case 72:
-#line 477 "asn1-parse.y"
+#line 484 "asn1-parse.y"
     {
                      yyval.node = NEW_NODE (TYPE_ENUMERATED);
                      yyval.node->flags.has_list = 1;
@@ -1767,14 +1774,14 @@ yyreduce:
     break;
 
   case 73:
-#line 485 "asn1-parse.y"
+#line 492 "asn1-parse.y"
     {
                      yyval.node = NEW_NODE (TYPE_OBJECT_ID);
                    }
     break;
 
   case 74:
-#line 491 "asn1-parse.y"
+#line 498 "asn1-parse.y"
     {
                       yyval.node = NEW_NODE (TYPE_IDENTIFIER);
                       set_str_value (yyval.node, yyvsp[0].str);
@@ -1782,7 +1789,7 @@ yyreduce:
     break;
 
   case 75:
-#line 496 "asn1-parse.y"
+#line 503 "asn1-parse.y"
     {
                       yyval.node = NEW_NODE (TYPE_IDENTIFIER);
                       yyval.node->flags.has_size = 1;
@@ -1792,76 +1799,76 @@ yyreduce:
     break;
 
   case 76:
-#line 502 "asn1-parse.y"
-    {yyval.node=yyvsp[0].node;}
-    break;
-
-  case 77:
-#line 503 "asn1-parse.y"
-    {yyval.node=yyvsp[0].node;}
-    break;
-
-  case 78:
-#line 504 "asn1-parse.y"
-    {yyval.node=yyvsp[0].node;}
-    break;
-
-  case 79:
-#line 505 "asn1-parse.y"
-    {yyval.node=yyvsp[0].node;}
-    break;
-
-  case 81:
-#line 507 "asn1-parse.y"
-    {yyval.node=yyvsp[0].node;}
-    break;
-
-  case 82:
-#line 508 "asn1-parse.y"
-    {yyval.node=yyvsp[0].node;}
-    break;
-
-  case 83:
 #line 509 "asn1-parse.y"
     {yyval.node=yyvsp[0].node;}
     break;
 
-  case 84:
+  case 77:
 #line 510 "asn1-parse.y"
     {yyval.node=yyvsp[0].node;}
     break;
 
-  case 85:
+  case 78:
 #line 511 "asn1-parse.y"
     {yyval.node=yyvsp[0].node;}
     break;
 
-  case 86:
+  case 79:
 #line 512 "asn1-parse.y"
     {yyval.node=yyvsp[0].node;}
     break;
 
+  case 81:
+#line 514 "asn1-parse.y"
+    {yyval.node=yyvsp[0].node;}
+    break;
+
+  case 82:
+#line 515 "asn1-parse.y"
+    {yyval.node=yyvsp[0].node;}
+    break;
+
+  case 83:
+#line 516 "asn1-parse.y"
+    {yyval.node=yyvsp[0].node;}
+    break;
+
+  case 84:
+#line 517 "asn1-parse.y"
+    {yyval.node=yyvsp[0].node;}
+    break;
+
+  case 85:
+#line 518 "asn1-parse.y"
+    {yyval.node=yyvsp[0].node;}
+    break;
+
+  case 86:
+#line 519 "asn1-parse.y"
+    {yyval.node=yyvsp[0].node;}
+    break;
+
   case 87:
-#line 513 "asn1-parse.y"
+#line 520 "asn1-parse.y"
     {yyval.node=yyvsp[0].node;}
     break;
 
   case 88:
-#line 515 "asn1-parse.y"
+#line 522 "asn1-parse.y"
     {
                       yyval.node = NEW_NODE(TYPE_NULL);
                     }
     break;
 
   case 89:
-#line 521 "asn1-parse.y"
+#line 528 "asn1-parse.y"
     {
                              yyval.node = yyvsp[0].node;
                            }
     break;
 
   case 90:
-#line 525 "asn1-parse.y"
+#line 532 "asn1-parse.y"
     {
 /*                               $2->flags.has_tag = 1; */
 /*                               $$ = $2; */
@@ -1873,14 +1880,14 @@ yyreduce:
     break;
 
   case 91:
-#line 536 "asn1-parse.y"
+#line 543 "asn1-parse.y"
     {
                                    yyval.node = yyvsp[0].node;
                                  }
     break;
 
   case 92:
-#line 540 "asn1-parse.y"
+#line 547 "asn1-parse.y"
     {
                                    yyvsp[-1].node->flags.has_default = 1;
                                    yyval.node = yyvsp[-1].node;
@@ -1890,7 +1897,7 @@ yyreduce:
     break;
 
   case 93:
-#line 547 "asn1-parse.y"
+#line 554 "asn1-parse.y"
     {
                                    yyvsp[-1].node->flags.is_optional = 1;
                                    yyval.node = yyvsp[-1].node;
@@ -1898,7 +1905,7 @@ yyreduce:
     break;
 
   case 94:
-#line 554 "asn1-parse.y"
+#line 561 "asn1-parse.y"
     {
                  set_name (yyvsp[0].node, yyvsp[-1].str); 
                  yyval.node = yyvsp[0].node;
@@ -1906,12 +1913,12 @@ yyreduce:
     break;
 
   case 95:
-#line 561 "asn1-parse.y"
+#line 568 "asn1-parse.y"
     { yyval.node=yyvsp[0].node; }
     break;
 
   case 96:
-#line 563 "asn1-parse.y"
+#line 570 "asn1-parse.y"
     {
                       yyval.node=yyvsp[-2].node;
                       append_right (yyval.node, yyvsp[0].node);
@@ -1919,7 +1926,7 @@ yyreduce:
     break;
 
   case 97:
-#line 570 "asn1-parse.y"
+#line 577 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_SEQUENCE);
                    set_down (yyval.node, yyvsp[-1].node);
@@ -1927,7 +1934,7 @@ yyreduce:
     break;
 
   case 98:
-#line 575 "asn1-parse.y"
+#line 582 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_SEQUENCE_OF);
                    set_down (yyval.node, yyvsp[0].node);
@@ -1935,7 +1942,7 @@ yyreduce:
     break;
 
   case 99:
-#line 580 "asn1-parse.y"
+#line 587 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_SEQUENCE_OF);
                    yyval.node->flags.has_size = 1;
@@ -1945,7 +1952,7 @@ yyreduce:
     break;
 
   case 100:
-#line 589 "asn1-parse.y"
+#line 596 "asn1-parse.y"
     {
                yyval.node = NEW_NODE (TYPE_SET);
                set_down (yyval.node, yyvsp[-1].node);
@@ -1953,7 +1960,7 @@ yyreduce:
     break;
 
   case 101:
-#line 594 "asn1-parse.y"
+#line 601 "asn1-parse.y"
     {
                yyval.node = NEW_NODE (TYPE_SET_OF);
                set_down (yyval.node, yyvsp[0].node);
@@ -1961,7 +1968,7 @@ yyreduce:
     break;
 
   case 102:
-#line 599 "asn1-parse.y"
+#line 606 "asn1-parse.y"
     {
                yyval.node = NEW_NODE (TYPE_SET_OF);
                yyval.node->flags.has_size = 1;
@@ -1971,7 +1978,7 @@ yyreduce:
     break;
 
   case 103:
-#line 608 "asn1-parse.y"
+#line 615 "asn1-parse.y"
     {
                   yyval.node = NEW_NODE (TYPE_CHOICE);
                   set_down (yyval.node, yyvsp[-1].node);
@@ -1979,14 +1986,14 @@ yyreduce:
     break;
 
   case 104:
-#line 615 "asn1-parse.y"
+#line 622 "asn1-parse.y"
     {
                yyval.node = NEW_NODE (TYPE_ANY);
              }
     break;
 
   case 105:
-#line 619 "asn1-parse.y"
+#line 626 "asn1-parse.y"
     {
                AsnNode node;
 
@@ -1999,7 +2006,7 @@ yyreduce:
     break;
 
   case 106:
-#line 631 "asn1-parse.y"
+#line 638 "asn1-parse.y"
     {
                set_name (yyvsp[0].node, yyvsp[-2].str);
                yyval.node = yyvsp[0].node;
@@ -2007,7 +2014,7 @@ yyreduce:
     break;
 
   case 107:
-#line 638 "asn1-parse.y"
+#line 645 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_OBJECT_ID);
                    yyval.node->flags.assignment = 1;
@@ -2017,7 +2024,7 @@ yyreduce:
     break;
 
   case 108:
-#line 645 "asn1-parse.y"
+#line 652 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_OBJECT_ID);
                    yyval.node->flags.assignment = 1;
@@ -2029,7 +2036,7 @@ yyreduce:
     break;
 
   case 109:
-#line 654 "asn1-parse.y"
+#line 661 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_INTEGER);
                    yyval.node->flags.assignment = 1;
@@ -2039,22 +2046,22 @@ yyreduce:
     break;
 
   case 110:
-#line 662 "asn1-parse.y"
+#line 669 "asn1-parse.y"
     { yyval.node = yyvsp[0].node; }
     break;
 
   case 111:
-#line 663 "asn1-parse.y"
+#line 670 "asn1-parse.y"
     { yyval.node = yyvsp[0].node; }
     break;
 
   case 112:
-#line 667 "asn1-parse.y"
+#line 674 "asn1-parse.y"
     { yyval.node = yyvsp[0].node; }
     break;
 
   case 113:
-#line 669 "asn1-parse.y"
+#line 676 "asn1-parse.y"
     { 
                          yyval.node = yyvsp[-1].node;
                          append_right (yyval.node, yyvsp[0].node);
@@ -2062,7 +2069,7 @@ yyreduce:
     break;
 
   case 114:
-#line 676 "asn1-parse.y"
+#line 683 "asn1-parse.y"
     {
                      yyval.node = NEW_NODE (TYPE_OBJECT_ID);
                      set_down (yyval.node, yyvsp[-1].node);
@@ -2071,12 +2078,12 @@ yyreduce:
     break;
 
   case 115:
-#line 684 "asn1-parse.y"
+#line 691 "asn1-parse.y"
     { yyval.node=NULL;}
     break;
 
   case 116:
-#line 686 "asn1-parse.y"
+#line 693 "asn1-parse.y"
     {
                   AsnNode node;
 
@@ -2090,17 +2097,17 @@ yyreduce:
     break;
 
   case 117:
-#line 698 "asn1-parse.y"
+#line 705 "asn1-parse.y"
     { yyval.constant = CONST_EXPLICIT; }
     break;
 
   case 118:
-#line 699 "asn1-parse.y"
+#line 706 "asn1-parse.y"
     { yyval.constant = CONST_IMPLICIT; }
     break;
 
   case 119:
-#line 705 "asn1-parse.y"
+#line 712 "asn1-parse.y"
     {
                  AsnNode node;
                  
@@ -2138,7 +2145,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 2142 "asn1-parse.c"
+#line 2149 "asn1-parse.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2332,7 +2339,7 @@ yyreturn:
 }
 
 
-#line 738 "asn1-parse.y"
+#line 745 "asn1-parse.y"
 
 
 const char *key_word[]={
@@ -2590,7 +2597,7 @@ ksba_asn_parse_file (const char *file_name, ksba_asn_tree_t *result, int debug)
   
   parsectl.fp = file_name? fopen (file_name, "r") : NULL;
   if ( !parsectl.fp )
-    return gpg_error_from_errno (errno);
+    return gpg_error_from_syserror ();
 
   parsectl.lineno = 0;
   parsectl.debug = debug;
@@ -2637,7 +2644,7 @@ ksba_asn_tree_release (ksba_asn_tree_t tree)
 void
 _ksba_asn_release_nodes (AsnNode node)
 {
-  /* FIXME: it does not work yet becuase the allocation function in
+  /* FIXME: it does not work yet because the allocation function in
      asn1-func.c does not link all nodes together */
   release_all_nodes (node);
 }
