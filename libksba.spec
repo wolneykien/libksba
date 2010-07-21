@@ -1,7 +1,7 @@
 %def_disable static
 
 Name: libksba
-Version: 1.0.5
+Version: 1.0.8
 Release: alt1
 
 Group: System/Libraries
@@ -83,6 +83,9 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
+* Wed Jul 21 2010 Sergey V Turchin <zerg@altlinux.org> 1.0.8-alt1
+- new version
+
 * Sun Jan 11 2009 Sergey V Turchin <zerg at altlinux dot org> 1.0.5-alt1
 - new version
 - remove deprecated macroses from specfile
