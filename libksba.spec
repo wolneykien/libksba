@@ -2,7 +2,7 @@
 
 Name: libksba
 Version: 1.0.8
-Release: alt1
+Release: alt0.M51.1
 
 Group: System/Libraries
 Summary: X.509 library
@@ -83,6 +83,9 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
+* Fri Jul 23 2010 Sergey V Turchin <zerg@altlinux.org> 1.0.8-alt0.M51.1
+- built for M51
+
 * Wed Jul 21 2010 Sergey V Turchin <zerg@altlinux.org> 1.0.8-alt1
 - new version
 
