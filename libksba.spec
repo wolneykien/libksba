@@ -1,8 +1,8 @@
 %def_disable static
 
 Name: libksba
-Version: 1.0.8
-Release: alt0.M51.1
+Version: 1.1.0
+Release: alt1
 
 Group: System/Libraries
 Summary: X.509 library
@@ -83,6 +83,9 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
+* Mon Dec 06 2010 Sergey V Turchin <zerg@altlinux.org> 1.1.0-alt1
+- new version
+
 * Fri Jul 23 2010 Sergey V Turchin <zerg@altlinux.org> 1.0.8-alt0.M51.1
 - built for M51
 
