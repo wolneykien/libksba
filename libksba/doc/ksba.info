@@ -1,4 +1,5 @@
-This is ksba.info, produced by makeinfo version 4.13 from ksba.texi.
+This is /home/wk/w/libksba/doc/ksba.info, produced by makeinfo version
+4.13 from /home/wk/w/libksba/doc/ksba.texi.
 
 INFO-DIR-SECTION GNU libraries
 START-INFO-DIR-ENTRY
@@ -8,8 +9,8 @@ END-INFO-DIR-ENTRY
    This file documents the KSBA library to access X.509 and CMS data
 structures.
 
-   This is edition 1.0.8, last updated 9 January 2009, of `The KSBA
-Reference Manual', for Version 1.0.8.
+   This is edition 1.1.0, last updated 9 January 2009, of `The KSBA
+Reference Manual', for Version 1.1.0.
 
    Copyright (C) 2002, 2003, 2004 g10 Code GmbH
 
@@ -25,8 +26,8 @@ File: ksba.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Main Menu
 *********
 
-This is edition 1.0.8, last updated 9 January 2009, of `The KSBA
-Reference Manual', for Version 1.0.8 of the KSBA library.
+This is edition 1.1.0, last updated 9 January 2009, of `The KSBA
+Reference Manual', for Version 1.1.0 of the KSBA library.
 
    Copyright (C) 2002, 2003, 2004 g10 Code GmbH
 
@@ -1847,33 +1848,33 @@ Function and Data Index
 
 
 Tag Table:
-Node: Top744
-Node: Introduction2777
-Node: Getting Started3055
-Node: Features3921
-Node: Overview5012
-Node: Preparation5261
-Node: Header5744
-Node: Version Check6340
-Node: Building the source7431
-Node: Certificate Handling9275
-Node: Creating certificates10256
-Node: Retrieving attributes12712
-Node: Setting attributes26360
-Node: User data26625
-Node: CMS28546
-Node: CMS Basics29006
-Node: CMS Parser31068
-Node: CRLs35034
-Node: PKCS1035317
-Node: Utilities35584
-Node: Names35988
-Node: OIDs38297
-Node: DNs38501
-Node: Error Handling39636
-Node: Component Labels40990
-Node: Copying42480
-Node: Concept Index80111
-Node: Function and Data Index80259
+Node: Top790
+Node: Introduction2823
+Node: Getting Started3101
+Node: Features3967
+Node: Overview5058
+Node: Preparation5307
+Node: Header5790
+Node: Version Check6386
+Node: Building the source7477
+Node: Certificate Handling9321
+Node: Creating certificates10302
+Node: Retrieving attributes12758
+Node: Setting attributes26406
+Node: User data26671
+Node: CMS28592
+Node: CMS Basics29052
+Node: CMS Parser31114
+Node: CRLs35080
+Node: PKCS1035363
+Node: Utilities35630
+Node: Names36034
+Node: OIDs38343
+Node: DNs38547
+Node: Error Handling39682
+Node: Component Labels41036
+Node: Copying42526
+Node: Concept Index80157
+Node: Function and Data Index80305
 
 End Tag Table
