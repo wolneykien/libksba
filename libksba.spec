@@ -1,7 +1,7 @@
 %def_disable static
 
 Name: libksba
-Version: 1.1.0
+Version: 1.2.0
 Release: alt1
 
 Group: System/Libraries
@@ -45,7 +45,7 @@ Static libraries for the %name-devel package
 %prep
 %setup -q
 %patch1 -p1
-%patch2 -p1
+#%patch2 -p1
 %patch10 -p1
 
 #__aclocal
@@ -83,6 +83,9 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
+* Wed Mar 02 2011 Sergey V Turchin <zerg@altlinux.org> 1.2.0-alt1
+- new version
+
 * Mon Dec 06 2010 Sergey V Turchin <zerg@altlinux.org> 1.1.0-alt1
 - new version
 
