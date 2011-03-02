@@ -219,7 +219,7 @@ typedef union YYSTYPE {
   AsnNode node;
 } YYSTYPE;
 /* Line 186 of yacc.c.  */
-#line 223 "asn1-parse.c"
+#line 223 "/home/wk/w/libksba/src/asn1-parse.c"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -245,7 +245,7 @@ static void yyerror (const char *s);
 
 
 /* Line 214 of yacc.c.  */
-#line 249 "asn1-parse.c"
+#line 249 "/home/wk/w/libksba/src/asn1-parse.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -1373,7 +1373,7 @@ yyreduce:
   case 13:
 #line 197 "asn1-parse.y"
     {
-                          yyval.node = NEW_NODE (TYPE_CONSTANT); 
+                          yyval.node = NEW_NODE (TYPE_CONSTANT);
                           set_str_value (yyval.node, yyvsp[-1].str);
                         }
     break;
@@ -1381,8 +1381,8 @@ yyreduce:
   case 14:
 #line 202 "asn1-parse.y"
     {
-                          yyval.node = NEW_NODE (TYPE_CONSTANT); 
-                          set_name (yyval.node, yyvsp[-3].str); 
+                          yyval.node = NEW_NODE (TYPE_CONSTANT);
+                          set_name (yyval.node, yyvsp[-3].str);
                           set_str_value (yyval.node, yyvsp[-1].str);
                         }
     break;
@@ -1422,8 +1422,8 @@ yyreduce:
 
   case 19:
 #line 234 "asn1-parse.y"
-    { 
-                   yyval.node = NEW_NODE (TYPE_CONSTANT); 
+    {
+                   yyval.node = NEW_NODE (TYPE_CONSTANT);
                    set_str_value (yyval.node, yyvsp[0].str);
                  }
     break;
@@ -1432,7 +1432,7 @@ yyreduce:
 #line 239 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_CONSTANT);
-                   set_name (yyval.node, yyvsp[-3].str); 
+                   set_name (yyval.node, yyvsp[-3].str);
                    set_str_value (yyval.node, yyvsp[-1].str);
                  }
     break;
@@ -1468,7 +1468,7 @@ yyreduce:
   case 26:
 #line 261 "asn1-parse.y"
     {
-                  yyval.node = NEW_NODE (TYPE_TAG); 
+                  yyval.node = NEW_NODE (TYPE_TAG);
                   yyval.node->flags.class = CLASS_CONTEXT;
                   set_ulong_value (yyval.node, yyvsp[-1].str);
                 }
@@ -1507,7 +1507,7 @@ yyreduce:
   case 31:
 #line 289 "asn1-parse.y"
     {
-                 yyval.node = NEW_NODE (TYPE_DEFAULT); 
+                 yyval.node = NEW_NODE (TYPE_DEFAULT);
                  set_str_value (yyval.node, yyvsp[0].str);
                }
     break;
@@ -1550,8 +1550,8 @@ yyreduce:
                  yyval.node = NEW_NODE (TYPE_INTEGER);
                  yyval.node->flags.has_min_max = 1;
                  /* the following is wrong.  Better use a union for the value*/
-                 set_down (yyval.node, NEW_NODE (TYPE_SIZE) ); 
-                 set_str_value (yyval.node->down, yyvsp[-1].str); 
+                 set_down (yyval.node, NEW_NODE (TYPE_SIZE) );
+                 set_str_value (yyval.node->down, yyvsp[-1].str);
                  set_name (yyval.node->down, yyvsp[-4].str);
                }
     break;
@@ -1572,7 +1572,7 @@ yyreduce:
 
   case 39:
 #line 337 "asn1-parse.y"
-    { 
+    {
             yyval.node = NEW_NODE (TYPE_GENERALIZED_TIME);
           }
     break;
@@ -1661,7 +1661,7 @@ yyreduce:
 
   case 51:
 #line 398 "asn1-parse.y"
-    { 
+    {
                           yyval.node = NEW_NODE (TYPE_PRINTABLE_STRING);
                           yyval.node->flags.has_size = 1;
                           set_down (yyval.node,yyvsp[0].node);
@@ -1728,7 +1728,7 @@ yyreduce:
 #line 453 "asn1-parse.y"
     {
                    yyval.node = NEW_NODE (TYPE_CONSTANT);
-                   set_name (yyval.node, yyvsp[-3].str); 
+                   set_name (yyval.node, yyvsp[-3].str);
                    set_str_value (yyval.node, yyvsp[-1].str);
                  }
     break;
@@ -1891,7 +1891,7 @@ yyreduce:
     {
                                    yyvsp[-1].node->flags.has_default = 1;
                                    yyval.node = yyvsp[-1].node;
-                                   set_right (yyvsp[0].node, yyval.node->down); 
+                                   set_right (yyvsp[0].node, yyval.node->down);
                                    set_down (yyval.node, yyvsp[0].node);
                                  }
     break;
@@ -1907,7 +1907,7 @@ yyreduce:
   case 94:
 #line 561 "asn1-parse.y"
     {
-                 set_name (yyvsp[0].node, yyvsp[-1].str); 
+                 set_name (yyvsp[0].node, yyvsp[-1].str);
                  yyval.node = yyvsp[0].node;
                }
     break;
@@ -2018,7 +2018,7 @@ yyreduce:
     {
                    yyval.node = NEW_NODE (TYPE_OBJECT_ID);
                    yyval.node->flags.assignment = 1;
-                   set_name (yyval.node, yyvsp[-6].str);  
+                   set_name (yyval.node, yyvsp[-6].str);
                    set_down (yyval.node, yyvsp[-1].node);
                  }
     break;
@@ -2029,7 +2029,7 @@ yyreduce:
                    yyval.node = NEW_NODE (TYPE_OBJECT_ID);
                    yyval.node->flags.assignment = 1;
                    yyval.node->flags.one_param = 1;
-                   set_name (yyval.node, yyvsp[-5].str);  
+                   set_name (yyval.node, yyvsp[-5].str);
                    set_str_value (yyval.node, yyvsp[-4].str);
                    set_down (yyval.node, yyvsp[-1].node);
                  }
@@ -2040,7 +2040,7 @@ yyreduce:
     {
                    yyval.node = NEW_NODE (TYPE_INTEGER);
                    yyval.node->flags.assignment = 1;
-                   set_name (yyval.node, yyvsp[-3].str);  
+                   set_name (yyval.node, yyvsp[-3].str);
                    set_str_value (yyval.node, yyvsp[0].str);
                  }
     break;
@@ -2062,7 +2062,7 @@ yyreduce:
 
   case 113:
 #line 676 "asn1-parse.y"
-    { 
+    {
                          yyval.node = yyvsp[-1].node;
                          append_right (yyval.node, yyvsp[0].node);
                        }
@@ -2089,7 +2089,7 @@ yyreduce:
 
                   yyval.node = NEW_NODE (TYPE_IMPORTS);
                   node = NEW_NODE (TYPE_OBJECT_ID);
-                  set_name (node, yyvsp[-1].str);  
+                  set_name (node, yyvsp[-1].str);
                   set_down (node, yyvsp[0].node);
                   set_down (yyval.node, node);
                   set_right (yyval.node, yyvsp[-3].node);
@@ -2110,7 +2110,7 @@ yyreduce:
 #line 712 "asn1-parse.y"
     {
                  AsnNode node;
-                 
+
                  yyval.node = node = NEW_NODE (TYPE_DEFINITIONS);
 
                  if (yyvsp[-6].constant == CONST_EXPLICIT)
@@ -2124,7 +2124,7 @@ yyreduce:
                  set_name (yyval.node, yyvsp[-8].node->name);
                  set_name (yyvsp[-8].node, "");
 
-                 if (!node->flags.has_imports) 
+                 if (!node->flags.has_imports)
                    set_right (yyvsp[-8].node,yyvsp[-1].node);
                  else
                    {
@@ -2145,7 +2145,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 2149 "asn1-parse.c"
+#line 2149 "/home/wk/w/libksba/src/asn1-parse.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2361,9 +2361,9 @@ const int key_word_token[]={
   ,SET,BY,EXPLICIT,IMPLICIT,DEFINITIONS,TAGS
   ,BEGIN,END,UTCTime,GeneralizedTime,FROM
   ,IMPORTS,TOKEN_NULL,ENUMERATED
-  ,UTF8STRING,NUMERICSTRING,PRINTABLESTRING,TELETEXSTRING  
+  ,UTF8STRING,NUMERICSTRING,PRINTABLESTRING,TELETEXSTRING
   ,IA5STRING,UNIVERSALSTRING,BMPSTRING
-};      
+};
 
 
 /*************************************************************/
@@ -2372,7 +2372,7 @@ const int key_word_token[]={
 /*  Return: int                                              */
 /*    Token identifier or ASCII code or 0(zero: End Of File) */
 /*************************************************************/
-static int 
+static int
 yylex (YYSTYPE *lvalp, void *parm)
 {
   int c,counter=0,k;
@@ -2394,7 +2394,7 @@ yylex (YYSTYPE *lvalp, void *parm)
       if(c==EOF)
         return 0;
 
-      if ( c=='(' || c==')' || c=='[' || c==']' 
+      if ( c=='(' || c==')' || c=='[' || c==']'
            || c=='{' || c=='}' || c==',' || c=='.' || c=='+')
         return c;
 
@@ -2413,13 +2413,13 @@ yylex (YYSTYPE *lvalp, void *parm)
                 ;
               if (c==EOF)
                 return 0;
-              else 
+              else
                 continue; /* repeat the search */
             }
         }
-      
+
       do
-        { 
+        {
           if (counter >= DIM (string)-1 )
             {
               fprintf (stderr,"%s:%d: token too long\n", "myfile:",
@@ -2429,41 +2429,41 @@ yylex (YYSTYPE *lvalp, void *parm)
           string[counter++]=c;
         }
       while ( !((c=fgetc(fp))==EOF
-                || c==' '|| c=='\t' || c=='\n' 
-                || c=='(' || c==')' || c=='[' || c==']' 
+                || c==' '|| c=='\t' || c=='\n'
+                || c=='(' || c==')' || c=='[' || c==']'
                 || c=='{' || c=='}' || c==',' || c=='.'));
-      
+
       ungetc (c,fp);
       string[counter]=0;
       /*fprintf (stderr, "yylex token `%s'\n", string);*/
 
       /* Is STRING a number? */
-      for (k=0; k<counter; k++) 
+      for (k=0; k<counter; k++)
         {
-          if(!isdigit(string[k])) 
+          if(!isdigit(string[k]))
             break;
         }
       if (k>=counter)
         {
-          strcpy (lvalp->str,string);  
+          strcpy (lvalp->str,string);
           if (PARSECTL->debug)
             fprintf (stderr,"%d: yylex found number `%s'\n",
                      PARSECTL->lineno, string);
           return NUM;
         }
-      
+
       /* Is STRING a keyword? */
       for (k=0; k<(sizeof(key_word)/sizeof(char*));k++ )
         {
-          if (!strcmp(string,key_word[k])) 
+          if (!strcmp(string,key_word[k]))
             {
               if (PARSECTL->debug)
                 fprintf (stderr,"%d: yylex found keyword `%s'\n",
                          PARSECTL->lineno, string);
-              return key_word_token[k]; 
+              return key_word_token[k];
             }
         }
-      
+
       /* STRING is an IDENTIFIER */
       strcpy(lvalp->str,string);
       if (PARSECTL->debug)
@@ -2473,16 +2473,16 @@ yylex (YYSTYPE *lvalp, void *parm)
     }
 }
 
-static void 
+static void
 yyerror (const char *s)
 {
   /* Sends the error description to stderr */
-  fprintf (stderr, "%s\n", s); 
+  fprintf (stderr, "%s\n", s);
   /* Why doesn't bison provide a way to pass the parm to yyerror ??*/
 }
 
 
- 
+
 static AsnNode
 new_node (struct parser_control_s *parsectl, node_type_t type)
 {
@@ -2506,7 +2506,7 @@ release_all_nodes (AsnNode node)
     {
       node2 = node->link_next;
       xfree (node->name);
-      
+
       if (node->valuetype == VALTYPE_CSTR)
         xfree (node->value.v_cstr);
       else if (node->valuetype == VALTYPE_MEM)
@@ -2585,16 +2585,16 @@ set_down (AsnNode node, AsnNode down)
  * @debug: Enable debug output
  *
  * Parse an ASN.1 file and return an syntax tree.
- * 
+ *
  * Return value: 0 for okay or an ASN_xx error code
  **/
-int 
+int
 ksba_asn_parse_file (const char *file_name, ksba_asn_tree_t *result, int debug)
 {
   struct parser_control_s parsectl;
-     
+
   *result = NULL;
-  
+
   parsectl.fp = file_name? fopen (file_name, "r") : NULL;
   if ( !parsectl.fp )
     return gpg_error_from_syserror ();
@@ -2608,11 +2608,11 @@ ksba_asn_parse_file (const char *file_name, ksba_asn_tree_t *result, int debug)
   if ( yyparse ((void*)&parsectl) || parsectl.result_parse )
     { /* error */
       fprintf (stderr, "%s:%d: parse error\n",
-               file_name?file_name:"-", parsectl.lineno ); 
+               file_name?file_name:"-", parsectl.lineno );
       release_all_nodes (parsectl.all_nodes);
       parsectl.all_nodes = NULL;
     }
-  else 
+  else
     { /* okay */
       ksba_asn_tree_t tree;
 

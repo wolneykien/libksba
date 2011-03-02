@@ -1,5 +1,5 @@
 /* certreq.c - create pkcs-10 messages
- *      Copyright (C) 2002 g10 Code GmbH
+ *      Copyright (C) 2002, 2011 g10 Code GmbH
  *
  * This file is part of KSBA.
  *
@@ -40,9 +40,9 @@ static const char oidstr_extensionReq[] = "1.2.840.113549.1.9.14";
 
 /**
  * ksba_cms_new:
- * 
+ *
  * Create a new and empty CMS object
- * 
+ *
  * Return value: A CMS object or an error code.
  **/
 gpg_error_t
@@ -58,7 +58,7 @@ ksba_certreq_new (ksba_certreq_t *r_cr)
 /**
  * ksba_certreq_release:
  * @cms: A Certreq object
- * 
+ *
  * Release a Certreq object.
  **/
 void
@@ -66,6 +66,9 @@ ksba_certreq_release (ksba_certreq_t cr)
 {
   if (!cr)
     return;
+  xfree (cr->x509.serial.der);
+  xfree (cr->x509.issuer.der);
+  xfree (cr->x509.siginfo.der);
   xfree (cr->subject.der);
   xfree (cr->key.der);
   xfree (cr->cri.der);
@@ -111,11 +114,106 @@ ksba_certreq_set_hash_function (ksba_certreq_t cr,
     }
 }
 
+
+
+/* Store the serial number.  If this function is used, a real X.509
+   certificate will be built instead of a pkcs#10 certificate signing
+   request.  SN must be a simple canonical encoded s-expression with
+   the serial number as its only item.  Note that this function allows
+   to set a negative serial number, which is not forbidden but
+   probably not a good idea.  */
+gpg_error_t
+ksba_certreq_set_serial (ksba_certreq_t cr, ksba_const_sexp_t sn)
+{
+  const char *p = (const char *)sn;
+  unsigned long n;
+  char *endp;
+
+  if (!cr || !sn || !p || *p != '(')
+    return gpg_error (GPG_ERR_INV_VALUE);
+
+  p++;
+  n = strtoul (p, &endp, 10);
+  p = endp;
+  if (*p++ != ':' || !n)
+    return gpg_error (GPG_ERR_INV_VALUE);
+
+  /* Remove invalid leading zero bytes.  */
+  for (; n > 1 && !*p && !(p[1] & 0x80); n--, p++)
+    ;
+
+  if (cr->x509.serial.der)
+    return gpg_error (GPG_ERR_CONFLICT); /* Already set */
+  cr->x509.serial.der = xtrymalloc (n);
+  if (!cr->x509.serial.der)
+    return gpg_error_from_syserror ();
+  memcpy (cr->x509.serial.der, p, n);
+  cr->x509.serial.derlen = n;
+
+  return 0;
+}
+
+
+/* Store the issuer's name.  NAME must be a valid RFC-2253 encoded DN
+   name.  Only used for building an X.509 certificate.  */
+gpg_error_t
+ksba_certreq_set_issuer (ksba_certreq_t cr, const char *name)
+{
+  if (!cr || !name)
+    return gpg_error (GPG_ERR_INV_VALUE);
+  if (cr->subject.der)
+    return gpg_error (GPG_ERR_CONFLICT); /* Already set */
+  return _ksba_dn_from_str (name, &cr->x509.issuer.der,
+                            &cr->x509.issuer.derlen);
+}
+
+/* Store validity information.  The time is in TIMEBUF.  A value of 0
+   for WHAT stores the notBefore time, a value of 1 stores the
+   notAfter time.  Only used for building an X.509 certificate.  */
+gpg_error_t
+ksba_certreq_set_validity (ksba_certreq_t cr, int what,
+                           const ksba_isotime_t timebuf)
+{
+  if (!cr || what < 0 || what > 1
+      || !timebuf || _ksba_assert_time_format (timebuf))
+    return gpg_error (GPG_ERR_INV_VALUE);
+
+  _ksba_copy_time (what?cr->x509.not_after:cr->x509.not_before, timebuf);
+  return 0;
+}
+
+
+/* Store the signing key info.  This is used to extract the signing
+   algorithm; the signing itself needs to be done by the caller as
+   response to a stop code.  The expression SIGINFO is similar to a
+   sig-val one, however most parameters are not required.  The
+   expected structure of this canonical encoded s-expression is:
+
+     (sig-val
+       (<algo>
+          (<param_name1> <value>)
+          ...
+          (<param_namen> <value>)))
+
+*/
+gpg_error_t
+ksba_certreq_set_siginfo (ksba_certreq_t cr, ksba_const_sexp_t siginfo)
+{
+  if (!cr || !siginfo)
+    return gpg_error (GPG_ERR_INV_VALUE);
+  xfree (cr->x509.siginfo.der);
+  cr->x509.siginfo.der = NULL;
+
+  return _ksba_algoinfo_from_sexp (siginfo, &cr->x509.siginfo.der,
+                                   &cr->x509.siginfo.derlen);
+}
+
+
 
 /* Store the subject's name.  Does perform some syntactic checks on
    the name.  The first added subject is the real one, all subsequent
    calls add subjectAltNames.
-   
+
    NAME must be a valid RFC-2253 encoded DN name for the first one or an
    email address enclosed in angle brackets for all further calls.
  */
@@ -128,7 +226,6 @@ ksba_certreq_add_subject (ksba_certreq_t cr, const char *name)
   unsigned char *der;
   int tag;
   const char *endp;
-
 
   if (!cr || !name)
     return gpg_error (GPG_ERR_INV_VALUE);
@@ -154,7 +251,7 @@ ksba_certreq_add_subject (ksba_certreq_t cr, const char *name)
       namelen = strtoul (name+11, (char**)&endp, 10);
       name = endp;
       if (!namelen || *name != ':')
-        return gpg_error (GPG_ERR_INV_SEXP); 
+        return gpg_error (GPG_ERR_INV_SEXP);
       name++;
     }
   else if (!strncmp (name, "(3:uri", 6))
@@ -163,7 +260,7 @@ ksba_certreq_add_subject (ksba_certreq_t cr, const char *name)
       namelen = strtoul (name+6, (char**)&endp, 10);
       name = endp;
       if (!namelen || *name != ':')
-        return gpg_error (GPG_ERR_INV_SEXP); 
+        return gpg_error (GPG_ERR_INV_SEXP);
       name++;
     }
   else
@@ -171,7 +268,7 @@ ksba_certreq_add_subject (ksba_certreq_t cr, const char *name)
 
   n1  = _ksba_ber_count_tl (tag, CLASS_CONTEXT, 0, namelen);
   n1 += namelen;
-  
+
   gn = xtrymalloc (sizeof *gn + n1 - 1);
   if (!gn)
     return gpg_error_from_errno (errno);
@@ -180,11 +277,11 @@ ksba_certreq_add_subject (ksba_certreq_t cr, const char *name)
   der = (unsigned char *)gn->data;
   n = _ksba_ber_encode_tl (der, tag, CLASS_CONTEXT, 0, namelen);
   if (!n)
-    return gpg_error (GPG_ERR_BUG); 
+    return gpg_error (GPG_ERR_BUG);
   der += n;
   memcpy (der, name, namelen);
   assert (der + namelen - (unsigned char*)gn->data == n1);
-  
+
   gn->next = cr->subject_alt_names;
   cr->subject_alt_names = gn;
 
@@ -230,7 +327,7 @@ add_general_names_to_extn (ksba_certreq_t cr, struct general_names_s *gnames,
       der += g->datalen;
     }
   assert (der - e->der == n2);
-  
+
   e->next = cr->extn_list;
   cr->extn_list = e;
   return 0;
@@ -290,7 +387,7 @@ ksba_certreq_add_extension (ksba_certreq_t cr,
  *		...
  *		(<param_namen> <mpi>)
  *	      ))
- * The sexp must be in canocial form. 
+ * The sexp must be in canonical form.
  * Fixme:  The code is mostly duplicated from cms.c
  * Note, that <algo> must be given as a stringified OID or the special
  * string "rsa" which is translated to sha1WithRSAEncryption
@@ -352,19 +449,19 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
   n = strtoul (s, (char**)&endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); 
+    return gpg_error (GPG_ERR_INV_SEXP);
   s++;
   s += n; /* ignore the name of the parameter */
-  
+
   if (!digitp(s))
     return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* but may also be an invalid one */
   n = strtoul (s, (char**)&endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); 
+    return gpg_error (GPG_ERR_INV_SEXP);
   s++;
   if (n > 1 && !*s)
-    { /* We might have a leading zero due to the way we encode 
+    { /* We might have a leading zero due to the way we encode
          MPIs - this zero should not go into the BIT STRING.  */
       s++;
       n--;
@@ -383,16 +480,18 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
 
   /* we need 2 closing parenthesis */
   if ( *s != ')' || s[1] != ')')
-    return gpg_error (GPG_ERR_INV_SEXP); 
+    return gpg_error (GPG_ERR_INV_SEXP);
 
   return 0;
 }
 
 
 
-/* Build the extension block and return it in R_DER and R_DERLEN */
+/* Build the extension block and return it in R_DER and R_DERLEN.  IF
+   CERTMODE is true build X.509 certificate extension instead.  */
 static gpg_error_t
-build_extensions (ksba_certreq_t cr, void **r_der, size_t *r_derlen)
+build_extensions (ksba_certreq_t cr, int certmode,
+                  void **r_der, size_t *r_derlen)
 {
   gpg_error_t err;
   ksba_writer_t writer, w=NULL;
@@ -427,7 +526,7 @@ build_extensions (ksba_certreq_t cr, void **r_der, size_t *r_derlen)
       if (!err)
         err = ksba_writer_write (w, p, n);
       xfree (p);
-      
+
       if (e->critical)
         {
           err = _ksba_ber_write_tl (w, TYPE_BOOLEAN, CLASS_UNIVERSAL, 0, 1);
@@ -443,7 +542,7 @@ build_extensions (ksba_certreq_t cr, void **r_der, size_t *r_derlen)
         err = ksba_writer_write (w, e->der, e->derlen);
       if(err)
         goto leave;
-      
+
       p = ksba_writer_snatch_mem (w, &n);
       if (!p)
         {
@@ -484,48 +583,52 @@ build_extensions (ksba_certreq_t cr, void **r_der, size_t *r_derlen)
       goto leave;
     }
 
-  /* Now create the extension request sequence content */
-  err = ksba_writer_set_mem (writer, valuelen+100);
-  if (err)
-    goto leave;
-  err = ksba_oid_from_str (oidstr_extensionReq, &p, &n);
-  if(err)
-    goto leave;
-  err = _ksba_ber_write_tl (writer, TYPE_OBJECT_ID, CLASS_UNIVERSAL, 0, n);
-  if (!err)
-    err = ksba_writer_write (writer, p, n);
-  xfree (p); p = NULL;
-  if (err)
-    return err;
-  err = _ksba_ber_write_tl (writer, TYPE_SET, CLASS_UNIVERSAL, 1, valuelen);
-  if (!err)
-    err = ksba_writer_write (writer, value, valuelen);
-
-  /* put this all into a SEQUENCE */
-  xfree (value);
-  value = ksba_writer_snatch_mem (writer, &valuelen);
-  if (!value)
+  if (!certmode)
     {
-      err = gpg_error (GPG_ERR_ENOMEM);
-      goto leave;
-    }
-  err = ksba_writer_set_mem (writer, valuelen+10);
-  if (err)
-    goto leave;
-  err = _ksba_ber_write_tl (writer, TYPE_SEQUENCE, CLASS_UNIVERSAL,
-                            1, valuelen);
-  if (!err)
-    err = ksba_writer_write (writer, value, valuelen);
-  if (err)
-    goto leave;
+      /* Now create the extension request sequence content */
+      err = ksba_writer_set_mem (writer, valuelen+100);
+      if (err)
+        goto leave;
+      err = ksba_oid_from_str (oidstr_extensionReq, &p, &n);
+      if(err)
+        goto leave;
+      err = _ksba_ber_write_tl (writer, TYPE_OBJECT_ID, CLASS_UNIVERSAL, 0, n);
+      if (!err)
+        err = ksba_writer_write (writer, p, n);
+      xfree (p); p = NULL;
+      if (err)
+        return err;
+      err = _ksba_ber_write_tl (writer, TYPE_SET, CLASS_UNIVERSAL, 1, valuelen);
+      if (!err)
+        err = ksba_writer_write (writer, value, valuelen);
 
-  xfree (value);
-  value = ksba_writer_snatch_mem (writer, &valuelen);
-  if (!value)
-    {
-      err = gpg_error (GPG_ERR_ENOMEM);
-      goto leave;
+      /* Put this all into a SEQUENCE */
+      xfree (value);
+      value = ksba_writer_snatch_mem (writer, &valuelen);
+      if (!value)
+        {
+          err = gpg_error (GPG_ERR_ENOMEM);
+          goto leave;
+        }
+      err = ksba_writer_set_mem (writer, valuelen+10);
+      if (err)
+        goto leave;
+      err = _ksba_ber_write_tl (writer, TYPE_SEQUENCE, CLASS_UNIVERSAL,
+                                1, valuelen);
+      if (!err)
+        err = ksba_writer_write (writer, value, valuelen);
+      if (err)
+        goto leave;
+
+      xfree (value);
+      value = ksba_writer_snatch_mem (writer, &valuelen);
+      if (!value)
+        {
+          err = gpg_error (GPG_ERR_ENOMEM);
+          goto leave;
+        }
     }
+
   *r_der = value;
   *r_derlen = valuelen;
   value = NULL;
@@ -547,6 +650,11 @@ build_cri (ksba_certreq_t cr)
   ksba_writer_t writer;
   void *value = NULL;
   size_t valuelen;
+  int certmode;
+
+  /* If a serial number has been set, we don't create a CSR but a
+     proper certificate.  */
+  certmode = !!cr->x509.serial.der;
 
   err = ksba_writer_new (&writer);
   if (err)
@@ -555,15 +663,140 @@ build_cri (ksba_certreq_t cr)
   if (err)
     goto leave;
 
+  if (!cr->key.der)
+    {
+      err = gpg_error (GPG_ERR_MISSING_VALUE);
+      goto leave;
+    }
+
   /* We write all stuff out to a temporary writer object, then use
      this object to create the cri and store the cri image */
 
-  /* store version v1 (which is a 0) */
-  err = _ksba_ber_write_tl (writer, TYPE_INTEGER, CLASS_UNIVERSAL, 0, 1);
-  if (!err)
-    err = ksba_writer_write (writer, "", 1);
+  if (certmode)
+    {
+      /* Store the version structure; version is 3 (encoded as 2):
+         [0] { INTEGER 2 }  */
+      err = ksba_writer_write (writer, "\xa0\x03\x02\x01\x02", 5);
+    }
+  else
+    {
+      /* Store version v1 (which is a 0).  */
+      err = _ksba_ber_write_tl (writer, TYPE_INTEGER, CLASS_UNIVERSAL, 0, 1);
+      if (!err)
+        err = ksba_writer_write (writer, "", 1);
+    }
   if (err)
     goto leave;
+
+  /* For a certificate we need to store the s/n, the signature
+     algorithm identifier, the issuer DN and the validity.  */
+  if (certmode)
+    {
+      /* Store the serial number. */
+      err = _ksba_ber_write_tl (writer, TYPE_INTEGER, CLASS_UNIVERSAL, 0,
+                                cr->x509.serial.derlen);
+      if (!err)
+        err = ksba_writer_write (writer,
+                                 cr->x509.serial.der, cr->x509.serial.derlen);
+      if (err)
+        goto leave;
+
+      /* Store the signature algorithm identifier.  */
+      if (!cr->x509.siginfo.der)
+        err = gpg_error (GPG_ERR_MISSING_VALUE);
+      else
+        err = ksba_writer_write (writer,
+                                 cr->x509.siginfo.der, cr->x509.siginfo.derlen);
+      if (err)
+        goto leave;
+
+
+      /* Store the issuer DN.  If no issuer DN has been set we use the
+         subject DN.  */
+      if (cr->x509.issuer.der)
+        err = ksba_writer_write (writer,
+                                 cr->x509.issuer.der, cr->x509.issuer.derlen);
+      else if (cr->subject.der)
+        err = ksba_writer_write (writer, cr->subject.der, cr->subject.derlen);
+      else
+        err = gpg_error (GPG_ERR_MISSING_VALUE);
+      if (err)
+        goto leave;
+
+      /* Store the Validity.  */
+      {
+        unsigned char templ[36];
+        unsigned char *tp;
+
+        tp = templ;
+        *tp++ = 0x30;
+        *tp++ = 0x22;
+
+        *tp++ = TYPE_GENERALIZED_TIME;
+        *tp++ = 15;
+        if (cr->x509.not_before[0])
+          {
+            if (_ksba_cmp_time (cr->x509.not_before, "20500101T000000") >= 0)
+              {
+                memcpy (tp, cr->x509.not_before, 8);
+                tp += 8;
+                memcpy (tp, cr->x509.not_before+9, 6);
+                tp += 6;
+              }
+            else
+              {
+                tp[-2] = TYPE_UTC_TIME;
+                tp[-1] = 13;
+                memcpy (tp, cr->x509.not_before+2, 6);
+                tp += 6;
+                memcpy (tp, cr->x509.not_before+9, 6);
+                tp += 6;
+              }
+          }
+        else
+          {
+            tp[-2] = TYPE_UTC_TIME;
+            tp[-1] = 13;
+            memcpy (tp, "110101000000", 12);
+            tp += 12;
+          }
+        *tp++ = 'Z';
+
+        *tp++ = TYPE_GENERALIZED_TIME;
+        *tp++ = 15;
+        if (cr->x509.not_after[0])
+          {
+            if (_ksba_cmp_time (cr->x509.not_after, "20500101T000000") >= 0)
+              {
+                memcpy (tp, cr->x509.not_after, 8);
+                tp += 8;
+                memcpy (tp, cr->x509.not_after+9, 6);
+                tp += 6;
+              }
+            else
+              {
+                tp[-2] = TYPE_UTC_TIME;
+                tp[-1] = 13;
+                memcpy (tp, cr->x509.not_after+2, 6);
+                tp += 6;
+                memcpy (tp, cr->x509.not_after+9, 6);
+                tp += 6;
+              }
+          }
+        else
+          {
+            memcpy (tp,"20630405170000", 14);
+            tp += 14;
+          }
+        *tp++ = 'Z';
+        assert (tp - templ <= 36);
+        templ[1] = tp - templ - 2;  /* Fixup the sequence length.  */
+
+        err = ksba_writer_write (writer, templ, tp - templ);
+        if (err)
+          goto leave;
+      }
+    }
 
   /* store the subject */
   if (!cr->subject.der)
@@ -576,11 +809,6 @@ build_cri (ksba_certreq_t cr)
     goto leave;
 
   /* store the public key info */
-  if (!cr->key.der)
-    {
-      err = gpg_error (GPG_ERR_MISSING_VALUE);
-      goto leave;
-    }
   err = ksba_writer_write (writer, cr->key.der, cr->key.derlen);
   if (err)
     goto leave;
@@ -588,7 +816,7 @@ build_cri (ksba_certreq_t cr)
   /* Copy generalNames objects to the extension list. */
   if (cr->subject_alt_names)
     {
-      err = add_general_names_to_extn (cr, cr->subject_alt_names, 
+      err = add_general_names_to_extn (cr, cr->subject_alt_names,
                                        oidstr_subjectAltName);
       if (err)
         goto leave;
@@ -600,17 +828,18 @@ build_cri (ksba_certreq_t cr)
         }
       cr->subject_alt_names = NULL;
     }
-  
+
 
   /* Write the extensions.  Note that the implicit SET OF is REQUIRED */
   xfree (value); value = NULL;
   valuelen = 0;
   if (cr->extn_list)
     {
-      err = build_extensions (cr, &value, &valuelen);
+      err = build_extensions (cr, certmode, &value, &valuelen);
       if (err)
         goto leave;
-      err = _ksba_ber_write_tl (writer, 0, CLASS_CONTEXT, 1, valuelen);
+      err = _ksba_ber_write_tl (writer, certmode? 3:0,
+                                CLASS_CONTEXT, 1, valuelen);
       if (!err)
         err = ksba_writer_write (writer, value, valuelen);
       if (err)
@@ -619,14 +848,15 @@ build_cri (ksba_certreq_t cr)
   else
     { /* We can't write an object of length zero using our ber_write
          function.  So we must open encode it. */
-      err = ksba_writer_write (writer, "\xa0\x02\x30", 4);
+      err = ksba_writer_write (writer,
+                               certmode? "\xa3\x02\x30":"\xa0\x02\x30", 4);
       if (err)
         goto leave;
     }
 
 
   /* pack it into the sequence */
-  xfree (value); 
+  xfree (value);
   value = ksba_writer_snatch_mem (writer, &valuelen);
   if (!value)
     {
@@ -644,7 +874,7 @@ build_cri (ksba_certreq_t cr)
     err = ksba_writer_write (writer, value, valuelen);
   if (err)
     goto leave;
-  
+
   /* and store the final result */
   cr->cri.der = ksba_writer_snatch_mem (writer, &cr->cri.derlen);
   if (!cr->cri.der)
@@ -670,8 +900,8 @@ hash_cri (ksba_certreq_t cr)
 
 /* The user has calculated the signatures and we can now write
    the signature */
-static gpg_error_t 
-sign_and_write (ksba_certreq_t cr) 
+static gpg_error_t
+sign_and_write (ksba_certreq_t cr)
 {
   gpg_error_t err;
   ksba_writer_t writer;
@@ -692,15 +922,15 @@ sign_and_write (ksba_certreq_t cr)
       goto leave;
     }
   err = ksba_writer_write (writer, cr->cri.der, cr->cri.derlen);
-  if (err) 
+  if (err)
     goto leave;
-  
+
   /* store the signatureAlgorithm */
   if (!cr->sig_val.algo)
     return gpg_error (GPG_ERR_MISSING_VALUE);
-  err = _ksba_der_write_algorithm_identifier (writer, 
+  err = _ksba_der_write_algorithm_identifier (writer,
                                               cr->sig_val.algo, NULL, 0);
-  if (err) 
+  if (err)
     goto leave;
 
   /* write the signature */
@@ -754,7 +984,7 @@ sign_and_write (ksba_certreq_t cr)
 gpg_error_t
 ksba_certreq_build (ksba_certreq_t cr, ksba_stop_reason_t *r_stopreason)
 {
-  enum { 
+  enum {
     sSTART,
     sHASHING,
     sGOTSIG,
@@ -785,7 +1015,7 @@ ksba_certreq_build (ksba_certreq_t cr, ksba_stop_reason_t *r_stopreason)
       break;
     case KSBA_SR_NEED_SIG:
       if (!cr->sig_val.algo)
-        err = gpg_error (GPG_ERR_MISSING_ACTION); 
+        err = gpg_error (GPG_ERR_MISSING_ACTION);
       else
         state = sGOTSIG;
       break;
@@ -833,7 +1063,7 @@ ksba_certreq_build (ksba_certreq_t cr, ksba_stop_reason_t *r_stopreason)
     default:
       break;
     }
-    
+
   *r_stopreason = stop_reason;
   return 0;
 }

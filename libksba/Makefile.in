@@ -16,19 +16,19 @@
 
 # Makefile.am - main makefile for libksba
 #     	Copyright (C) 2001, 2002 g10 Code GmbH
-# 
+#
 # This file is part of KSBA.
-# 
+#
 # KSBA is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # KSBA is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 VPATH = @srcdir@
@@ -137,6 +137,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 KSBA_CONFIG_API_VERSION = @KSBA_CONFIG_API_VERSION@
 KSBA_CONFIG_CFLAGS = @KSBA_CONFIG_CFLAGS@
+KSBA_CONFIG_HOST = @KSBA_CONFIG_HOST@
 KSBA_CONFIG_LIBS = @KSBA_CONFIG_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -689,7 +690,7 @@ uninstall-am:
 dist-hook:
 	@set -e; echo "$(VERSION)" > $(distdir)/VERSION
 
-stowinstall: 
+stowinstall:
 	$(MAKE) $(AM_MAKEFLAGS) install prefix=/usr/local/stow/libksba
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

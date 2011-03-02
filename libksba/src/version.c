@@ -79,11 +79,10 @@ compare_versions (const char *my_version, const char *req_version)
 
   if (my_major > rq_major
 	|| (my_major == rq_major && my_minor > rq_minor)
-      || (my_major == rq_major && my_minor == rq_minor 
+      || (my_major == rq_major && my_minor == rq_minor
 	  && my_micro > rq_micro)
       || (my_major == rq_major && my_minor == rq_minor
-	  && my_micro == rq_micro
-	  && strcmp( my_plvl, rq_plvl ) >= 0))
+	  && my_micro == rq_micro))
     {
       return my_version;
     }
@@ -93,15 +92,15 @@ compare_versions (const char *my_version, const char *req_version)
 /**
  * ksba_check_version:
  * @req_version: A string with a version
- * 
+ *
  * Check that the the version of the library is at minimum the requested one
  * and return the version string; return NULL if the condition is not
  * met.  If a NULL is passed to this function, no check is done and
  * the version string is simply returned.  It is a pretty good idea to
- * run this function as soon as possible, because it also intializes 
+ * run this function as soon as possible, because it also intializes
  * some subsystems.  In a multithreaded environment if should be called
  * before the first thread is created.
- * 
+ *
  * Return value: The version string or NULL
  **/
 const char *

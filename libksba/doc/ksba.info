@@ -9,8 +9,8 @@ END-INFO-DIR-ENTRY
    This file documents the KSBA library to access X.509 and CMS data
 structures.
 
-   This is edition 1.1.0, last updated 9 January 2009, of `The KSBA
-Reference Manual', for Version 1.1.0.
+   This is edition 1.2.0, last updated 24 February 2011, of `The KSBA
+Reference Manual', for Version 1.2.0.
 
    Copyright (C) 2002, 2003, 2004 g10 Code GmbH
 
@@ -26,8 +26,8 @@ File: ksba.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Main Menu
 *********
 
-This is edition 1.1.0, last updated 9 January 2009, of `The KSBA
-Reference Manual', for Version 1.1.0 of the KSBA library.
+This is edition 1.2.0, last updated 24 February 2011, of `The KSBA
+Reference Manual', for Version 1.2.0 of the KSBA library.
 
    Copyright (C) 2002, 2003, 2004 g10 Code GmbH
 
@@ -1848,33 +1848,33 @@ Function and Data Index
 
 
 Tag Table:
-Node: Top790
-Node: Introduction2823
-Node: Getting Started3101
-Node: Features3967
-Node: Overview5058
-Node: Preparation5307
-Node: Header5790
-Node: Version Check6386
-Node: Building the source7477
-Node: Certificate Handling9321
-Node: Creating certificates10302
-Node: Retrieving attributes12758
-Node: Setting attributes26406
-Node: User data26671
-Node: CMS28592
-Node: CMS Basics29052
-Node: CMS Parser31114
-Node: CRLs35080
-Node: PKCS1035363
-Node: Utilities35630
-Node: Names36034
-Node: OIDs38343
-Node: DNs38547
-Node: Error Handling39682
-Node: Component Labels41036
-Node: Copying42526
-Node: Concept Index80157
-Node: Function and Data Index80305
+Node: Top792
+Node: Introduction2827
+Node: Getting Started3105
+Node: Features3971
+Node: Overview5062
+Node: Preparation5311
+Node: Header5794
+Node: Version Check6390
+Node: Building the source7481
+Node: Certificate Handling9325
+Node: Creating certificates10306
+Node: Retrieving attributes12762
+Node: Setting attributes26410
+Node: User data26675
+Node: CMS28596
+Node: CMS Basics29056
+Node: CMS Parser31118
+Node: CRLs35084
+Node: PKCS1035367
+Node: Utilities35634
+Node: Names36038
+Node: OIDs38347
+Node: DNs38551
+Node: Error Handling39686
+Node: Component Labels41040
+Node: Copying42530
+Node: Concept Index80161
+Node: Function and Data Index80309
 
 End Tag Table

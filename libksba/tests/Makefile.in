@@ -16,19 +16,19 @@
 
 # Makefile.am - for the KSBA regression tests
 #       Copyright (C) 2001, 2003 g10 Code GmbH
-# 	
+#
 # This file is part of KSBA.
-# 
+#
 # KSBA is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # KSBA is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
@@ -53,7 +53,8 @@ build_triplet = @build@
 host_triplet = @host@
 TESTS = cert-basic$(EXEEXT) t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT)
 noinst_PROGRAMS = $(am__EXEEXT_1) t-cms-parser$(EXEEXT) \
-	t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT) t-ocsp$(EXEEXT)
+	t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT) t-ocsp$(EXEEXT) \
+	t-oid$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in ChangeLog
@@ -94,6 +95,10 @@ am_t_ocsp_OBJECTS = t-ocsp.$(OBJEXT) sha1.$(OBJEXT)
 t_ocsp_OBJECTS = $(am_t_ocsp_OBJECTS)
 t_ocsp_LDADD = $(LDADD)
 t_ocsp_DEPENDENCIES = ../src/libksba.la $(am__DEPENDENCIES_1)
+t_oid_SOURCES = t-oid.c
+t_oid_OBJECTS = t-oid.$(OBJEXT)
+t_oid_LDADD = $(LDADD)
+t_oid_DEPENDENCIES = ../src/libksba.la $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -107,9 +112,9 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = cert-basic.c t-cms-parser.c t-crl-parser.c t-dnparser.c \
-	$(t_ocsp_SOURCES)
+	$(t_ocsp_SOURCES) t-oid.c
 DIST_SOURCES = cert-basic.c t-cms-parser.c t-crl-parser.c t-dnparser.c \
-	$(t_ocsp_SOURCES)
+	$(t_ocsp_SOURCES) t-oid.c
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -156,6 +161,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 KSBA_CONFIG_API_VERSION = @KSBA_CONFIG_API_VERSION@
 KSBA_CONFIG_CFLAGS = @KSBA_CONFIG_CFLAGS@
+KSBA_CONFIG_HOST = @KSBA_CONFIG_HOST@
 KSBA_CONFIG_LIBS = @KSBA_CONFIG_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -255,9 +261,9 @@ test_certs = cert_dfn_pca01.der cert_dfn_pca15.der \
              samples/ov-root-ca-cert.crt samples/ov-serverrev.crt \
 	     samples/ov-user.crt samples/ov-server.crt  \
              samples/ov2-root-ca-cert.crt samples/ov2-ocsp-server.crt \
-             samples/ov2-user.crt samples/ov2-userrev.crt 
+             samples/ov2-user.crt samples/ov2-userrev.crt
 
-test_crls = samples/ov-test-crl.crl 
+test_crls = samples/ov-test-crl.crl
 test_keys = samples/ov-server.p12  samples/ov-userrev.p12 \
              samples/ov-serverrev.p12  samples/ov-user.p12
 
@@ -324,6 +330,9 @@ t-dnparser$(EXEEXT): $(t_dnparser_OBJECTS) $(t_dnparser_DEPENDENCIES)
 t-ocsp$(EXEEXT): $(t_ocsp_OBJECTS) $(t_ocsp_DEPENDENCIES) 
 	@rm -f t-ocsp$(EXEEXT)
 	$(LINK) $(t_ocsp_OBJECTS) $(t_ocsp_LDADD) $(LIBS)
+t-oid$(EXEEXT): $(t_oid_OBJECTS) $(t_oid_DEPENDENCIES) 
+	@rm -f t-oid$(EXEEXT)
+	$(LINK) $(t_oid_OBJECTS) $(t_oid_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -337,6 +346,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-crl-parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-dnparser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-ocsp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-oid.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -637,7 +647,7 @@ uninstall-am:
 # another program and we may not be allowed to distribute this.  This
 # ain't no problem as the programs using this generated data are not
 # installed and thus not distributed.
-oidtranstbl.h: Makefile mkoidtbl.awk 
+oidtranstbl.h: Makefile mkoidtbl.awk
 	set -e; f="/dev/null"; \
         for i in /etc/dumpasn1 /usr/local/bin /usr/local/share /usr/bin \
                  /usr/share ; do \

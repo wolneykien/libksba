@@ -27,7 +27,7 @@ typedef struct asn_node_struct *AsnNode;  /* FIXME: should not go here */
 #define HAVE_TYPEDEFD_ASNNODE
 #endif
 
-struct extn_list_s 
+struct extn_list_s
 {
   struct extn_list_s *next;
   const char *oid;
@@ -38,7 +38,7 @@ struct extn_list_s
 
 
 /* Object to collect information for building a GeneralNames. */
-struct general_names_s 
+struct general_names_s
 {
   struct general_names_s *next;
   int tag;   /* The GeneralName CHOICE.  Only certain values are
@@ -50,7 +50,7 @@ struct general_names_s
 };
 
 
-struct ksba_certreq_s 
+struct ksba_certreq_s
 {
   gpg_error_t last_error;
 
@@ -62,9 +62,28 @@ struct ksba_certreq_s
   int any_build_done;
 
   struct {
+    struct {
+      char *der;  /* Malloced serialno; if this is set we want to
+                          build a real X.509 certificate.  */
+      size_t derlen;
+    } serial;
+    struct {
+      char *der;
+      size_t derlen;
+    } issuer;
+    ksba_isotime_t not_before;
+    ksba_isotime_t not_after;
+    struct {
+      unsigned char *der;
+      size_t derlen;
+    } siginfo;
+  } x509;
+
+  struct {
     char *der;
     size_t derlen;
   } subject;
+
   struct {
     unsigned char *der;
     size_t derlen;
@@ -86,11 +105,9 @@ struct ksba_certreq_s
   } sig_val;
 
 
-  
+
 };
 
 
 
 #endif /*CERTREQ_H*/
-
-
