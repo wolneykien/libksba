@@ -9,8 +9,8 @@ END-INFO-DIR-ENTRY
    This file documents the KSBA library to access X.509 and CMS data
 structures.
 
-   This is edition 1.2.0, last updated 24 February 2011, of `The KSBA
-Reference Manual', for Version 1.2.0.
+   This is edition 1.3.0, last updated 24 February 2011, of `The KSBA
+Reference Manual', for Version 1.3.0.
 
    Copyright (C) 2002, 2003, 2004 g10 Code GmbH
 
@@ -26,8 +26,8 @@ File: ksba.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Main Menu
 *********
 
-This is edition 1.2.0, last updated 24 February 2011, of `The KSBA
-Reference Manual', for Version 1.2.0 of the KSBA library.
+This is edition 1.3.0, last updated 24 February 2011, of `The KSBA
+Reference Manual', for Version 1.3.0 of the KSBA library.
 
    Copyright (C) 2002, 2003, 2004 g10 Code GmbH
 

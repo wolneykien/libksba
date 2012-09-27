@@ -19,9 +19,15 @@
 ## Process this file with automake to produce Makefile.in
 
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
-AUTOMAKE_OPTIONS = dist-bzip2
+AUTOMAKE_OPTIONS = dist-bzip2 no-dist-gzip
 
-EXTRA_DIST = autogen.sh
+# (A suitable gitlog-to-changelog script can be found in GnuPG master.)
+GITLOG_TO_CHANGELOG=gitlog-to-changelog
+
+EXTRA_DIST = autogen.sh COPYING.GPLv2 COPYING.GPLv3 COPYING.LGPLv3      \
+             ChangeLog-2011 doc/ChangeLog-2011 src/ChangeLog-2011 	\
+             tests/ChangeLog-2011 			     		\
+             build-aux/git-log-footer build-aux/git-log-fix
 
 
 if CROSS_COMPILING
@@ -33,8 +39,24 @@ endif
 
 SUBDIRS = m4 gl src ${tests} doc
 
-dist-hook:
+dist-hook: gen-ChangeLog
 	@set -e; echo "$(VERSION)" > $(distdir)/VERSION
+
+
+gen_start_date = 2011-12-01T00:00:00
+.PHONY: gen-ChangeLog
+gen-ChangeLog:
+	if test -d $(top_srcdir)/.git; then				\
+	  (cd $(top_srcdir) &&                      			\
+	    $(GITLOG_TO_CHANGELOG) --append-dot --tear-off		\
+	    --amend=build-aux/git-log-fix				\
+	    --since=$(gen_start_date) ) > $(distdir)/cl-t;		\
+          cat $(top_srcdir)/build-aux/git-log-footer >> $(distdir)/cl-t;\
+	  rm -f $(distdir)/ChangeLog;					\
+	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
+	fi
+
+
 
 stowinstall:
 	$(MAKE) $(AM_MAKEFLAGS) install prefix=/usr/local/stow/libksba

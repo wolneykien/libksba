@@ -1,6 +1,6 @@
 # configure.ac - for libksba
 # Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#               2010, 2011  g10 Code GmbH
+#               2010, 2011, 2012  g10 Code GmbH
 #
 # This file is part of KSBA
 #
@@ -22,20 +22,28 @@ AC_PREREQ(2.61)
 min_automake_version="1.10"
 
 
-# Remember to change the version number immediately *after* a release.
-# Set my_issvn to "yes" for non-released code.  Remember to run an
-# "svn up" and "autogen.sh" right before creating a distribution.
-m4_define([my_version], [1.2.0])
-m4_define([my_issvn], [no])
+# To build a release you need to create a tag with the version number
+# (git tag -s libksba-n.m.k) and run "./autogen.sh --force".  Please
+# bump the version number immediately after the release and do another
+# commit and push so that the git magic is able to work.  See below
+# for the LT versions.
+m4_define(mym4_version, [1.3.0])
 
-m4_define([svn_revision], m4_esyscmd([printf "%d" $(svn info 2>/dev/null \
-          | sed -n '/^Revision:/ s/[^0-9]//gp'|head -1)]))
-m4_define([git_revision], m4_esyscmd([git branch -v 2>/dev/null \
+# Below is m4 magic to extract and compute the revision number, the
+# decimalized short revision number, a beta version string, and a flag
+# indicating a development version (mym4_isgit). Note that the m4
+# processing is done by autoconf and not during the configure run.
+m4_define([mym4_revision], m4_esyscmd([git branch -v 2>/dev/null \
           | awk '/^\* / {printf "%s",$3}']))
-AC_INIT([libksba],
-        [my_version[]m4_if(my_issvn,[yes],
-        [m4_if(git_revision,[],[-svn[]svn_revision],[-git[]git_revision])])],
-        [gnupg-devel@gnupg.org])
+m4_define([mym4_revision_dec],
+          m4_esyscmd_s([echo $((0x$(echo ]mym4_revision[|head -c 4)))]))
+m4_define([mym4_betastring],
+          m4_esyscmd_s([git describe --match 'libksba-[0-9].*[0-9]' --long|\
+                        awk -F- '$3!=0{print"-beta"$3}']))
+m4_define([mym4_isgit],m4_if(mym4_betastring,[],[no],[yes]))
+m4_define([mym4_full_version],[mym4_version[]mym4_betastring])
+
+AC_INIT([libksba],[mym4_full_version],[http://bugs.gnupg.org])
 
 # LT Version numbers: Remember to change them just *before* a release.
 #   (Interfaces removed:    CURRENT++, AGE=0, REVISION=0)
@@ -44,7 +52,7 @@ AC_INIT([libksba],
 # Please remember to document interface changes in the NEWS file.
 LIBKSBA_LT_CURRENT=19
 LIBKSBA_LT_AGE=11
-LIBKSBA_LT_REVISION=0
+LIBKSBA_LT_REVISION=1
 #-------------------
 # If the API is changed in an incompatible way: increment the next counter.
 KSBA_CONFIG_API_VERSION=1
@@ -53,8 +61,6 @@ KSBA_CONFIG_API_VERSION=1
 NEED_GPG_ERROR_VERSION=1.8
 
 
-m4_define([git_brevis],m4_esyscmd(printf "%u" 0x[]m4_substr(git_revision,0,4)))
-BUILD_REVISION=m4_if(git_revision,[],[svn_revision],[git_brevis])
 PACKAGE=$PACKAGE_NAME
 VERSION=$PACKAGE_VERSION
 
@@ -152,7 +158,7 @@ if test "$GCC" = yes; then
         AC_MSG_CHECKING([if gcc supports -Wno-missing-field-initializers])
         _gcc_cflags_save=$CFLAGS
         CFLAGS="-Wno-missing-field-initializers"
-        AC_COMPILE_IFELSE(AC_LANG_PROGRAM([]),_gcc_wopt=yes,_gcc_wopt=no)
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],_gcc_wopt=yes,_gcc_wopt=no)
         AC_MSG_RESULT($_gcc_wopt)
         CFLAGS=$_gcc_cflags_save;
         if test x"$_gcc_wopt" = xyes ; then
@@ -162,7 +168,7 @@ if test "$GCC" = yes; then
         AC_MSG_CHECKING([if gcc supports -Wdeclaration-after-statement])
         _gcc_cflags_save=$CFLAGS
         CFLAGS="-Wdeclaration-after-statement"
-        AC_COMPILE_IFELSE(AC_LANG_PROGRAM([]),_gcc_wopt=yes,_gcc_wopt=no)
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],_gcc_wopt=yes,_gcc_wopt=no)
         AC_MSG_RESULT($_gcc_wopt)
         CFLAGS=$_gcc_cflags_save;
         if test x"$_gcc_wopt" = xyes ; then
@@ -173,7 +179,7 @@ if test "$GCC" = yes; then
     AC_MSG_CHECKING([if gcc supports -Wpointer-arith])
     _gcc_cflags_save=$CFLAGS
     CFLAGS="-Wpointer-arith"
-    AC_COMPILE_IFELSE(AC_LANG_PROGRAM([]),_gcc_wopt=yes,_gcc_wopt=no)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],_gcc_wopt=yes,_gcc_wopt=no)
     AC_MSG_RESULT($_gcc_wopt)
     CFLAGS=$_gcc_cflags_save;
     if test x"$_gcc_wopt" = xyes ; then
@@ -183,7 +189,7 @@ if test "$GCC" = yes; then
     AC_MSG_CHECKING([if gcc supports -Wno-pointer-sign])
     _gcc_cflags_save=$CFLAGS
     CFLAGS="-Wno-pointer-sign"
-    AC_COMPILE_IFELSE(AC_LANG_PROGRAM([]),_gcc_psign=yes,_gcc_psign=no)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],_gcc_psign=yes,_gcc_psign=no)
     AC_MSG_RESULT($_gcc_psign)
     CFLAGS=$_gcc_cflags_save;
     if test x"$_gcc_psign" = xyes ; then
@@ -304,7 +310,7 @@ if test "$ksba_cv_visibility_attribute" = "yes"; then
        [ksba_cv_gcc_has_f_visibility=no
         _gcc_cflags_save=$CFLAGS
         CFLAGS="-fvisibility=hidden"
-        AC_COMPILE_IFELSE(AC_LANG_PROGRAM([]),
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
                           ksba_cv_gcc_has_f_visibility=yes)
         CFLAGS=$_gcc_cflags_save;
        ])
@@ -376,13 +382,15 @@ if test "$have_w32_system" = yes; then
    changequote(,)dnl
    BUILD_FILEVERSION=`echo "$VERSION" | sed 's/\([0-9.]*\).*/\1./;s/\./,/g'`
    changequote([,])dnl
-   BUILD_FILEVERSION="${BUILD_FILEVERSION}${BUILD_REVISION}"
+   BUILD_FILEVERSION="${BUILD_FILEVERSION}mym4_revision_dec"
 fi
 AC_SUBST(BUILD_REVISION)
 AC_SUBST(BUILD_TIMESTAMP)
 AC_SUBST(BUILD_FILEVERSION)
+BUILD_REVISION="mym4_revision"
+AC_SUBST(BUILD_REVISION)
 AC_DEFINE_UNQUOTED(BUILD_REVISION, "$BUILD_REVISION",
-                   [Subversion revision used to build this package])
+                   [GIT commit id revision used to build this package])
 
 
 AC_CONFIG_FILES([
