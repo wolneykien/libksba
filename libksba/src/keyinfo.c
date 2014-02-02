@@ -1272,7 +1272,12 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               is_int = c == 0x02;
               TLV_LENGTH (parmder);
             }
-          if (is_int && *elem != '-')  /* Take this integer.  */
+          if (*elem == '_') /* Skip the element.  */
+            {
+              parmder += len;
+              parmderlen -= len;
+            }
+          else if (is_int && *elem != '-')  /* Take this integer.  */
             {
               char tmp[2];
 
@@ -1316,7 +1321,12 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           is_int = c == 0x02;
           TLV_LENGTH (der);
         }
-      if (is_int && *elem != '-')
+      if (*elem == '_') /* Skip the element.  */
+        {
+          der += len;
+          derlen -= len;
+        }
+      else if (is_int && *elem != '-')
         { /* take this integer */
           char tmp[2];
 
