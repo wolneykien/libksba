@@ -80,6 +80,9 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
+* Tue Nov 25 2014 Sergey V Turchin <zerg@altlinux.org> 1.3.2-alt1
+- new version
+
 * Thu Sep 27 2012 Sergey V Turchin <zerg@altlinux.org> 1.3.0-alt1
 - new version
 
