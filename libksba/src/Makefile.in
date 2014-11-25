@@ -80,7 +80,9 @@ DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/versioninfo.rc.in asn1-parse.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/gl/m4/alloca.m4 \
-	$(top_srcdir)/gl/m4/gnulib.m4 $(top_srcdir)/m4/autobuild.m4 \
+	$(top_srcdir)/gl/m4/gnulib.m4 \
+	$(top_srcdir)/gl/m4/valgrind-tests.m4 \
+	$(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/gnupg-typedef.m4 \
 	$(top_srcdir)/m4/gpg-error.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -88,7 +90,7 @@ am__aclocal_m4_deps = $(top_srcdir)/gl/m4/alloca.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES = ksba-config versioninfo.rc
 CONFIG_CLEAN_VPATH_FILES =
@@ -129,7 +131,10 @@ am_libksba_la_OBJECTS = visibility.lo reader.lo writer.lo \
 	crl.lo certreq.lo ocsp.lo keyinfo.lo oid.lo name.lo dn.lo \
 	time.lo version.lo util.lo asn1-tables.lo
 libksba_la_OBJECTS = $(am_libksba_la_OBJECTS)
-libksba_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+libksba_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libksba_la_LDFLAGS) $(LDFLAGS) -o $@
 PROGRAMS = $(noinst_PROGRAMS)
@@ -141,28 +146,44 @@ am_ber_dump_OBJECTS = ber_dump-ber-dump.$(OBJEXT) \
 ber_dump_OBJECTS = $(am_ber_dump_OBJECTS)
 am__DEPENDENCIES_2 =
 ber_dump_DEPENDENCIES = $(am__DEPENDENCIES_2) ../gl/libgnu.la
-ber_dump_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(ber_dump_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+ber_dump_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(ber_dump_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SCRIPTS = $(bin_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC    " $@;
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD  " $@;
 @MAINTAINER_MODE_FALSE@am__skipyacc = test -f $@ ||
 YACCCOMPILE = $(YACC) $(AM_YFLAGS) $(YFLAGS)
-LTYACCCOMPILE = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(YACC) $(AM_YFLAGS) $(YFLAGS)
-YLWRAP = $(top_srcdir)/ylwrap
+LTYACCCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(YACC) $(AM_YFLAGS) $(YFLAGS)
+AM_V_YACC = $(am__v_YACC_@AM_V@)
+am__v_YACC_ = $(am__v_YACC_@AM_DEFAULT_V@)
+am__v_YACC_0 = @echo "  YACC  " $@;
+YLWRAP = $(top_srcdir)/build-aux/ylwrap
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(libksba_la_SOURCES) $(ber_dump_SOURCES)
 DIST_SOURCES = $(libksba_la_SOURCES) $(ber_dump_SOURCES)
 am__can_run_installinfo = \
@@ -179,6 +200,7 @@ ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 ALLOCA_H = @ALLOCA_H@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
 AS = @AS@
 AUTOCONF = @AUTOCONF@
@@ -209,6 +231,8 @@ FGREP = @FGREP@
 GPG_ERROR_CFLAGS = @GPG_ERROR_CFLAGS@
 GPG_ERROR_CONFIG = @GPG_ERROR_CONFIG@
 GPG_ERROR_LIBS = @GPG_ERROR_LIBS@
+GPG_ERROR_MT_CFLAGS = @GPG_ERROR_MT_CFLAGS@
+GPG_ERROR_MT_LIBS = @GPG_ERROR_MT_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -255,6 +279,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+VALGRIND = @VALGRIND@
 VERSION = @VERSION@
 YACC = @YACC@
 YFLAGS = @YFLAGS@
@@ -446,7 +471,7 @@ clean-libLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libksba.la: $(libksba_la_OBJECTS) $(libksba_la_DEPENDENCIES) $(EXTRA_libksba_la_DEPENDENCIES) 
-	$(libksba_la_LINK) -rpath $(libdir) $(libksba_la_OBJECTS) $(libksba_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(libksba_la_LINK) -rpath $(libdir) $(libksba_la_OBJECTS) $(libksba_la_LIBADD) $(LIBS)
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
@@ -458,7 +483,7 @@ clean-noinstPROGRAMS:
 	rm -f $$list
 ber-dump$(EXEEXT): $(ber_dump_OBJECTS) $(ber_dump_DEPENDENCIES) $(EXTRA_ber_dump_DEPENDENCIES) 
 	@rm -f ber-dump$(EXEEXT)
-	$(ber_dump_LINK) $(ber_dump_OBJECTS) $(ber_dump_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(ber_dump_LINK) $(ber_dump_OBJECTS) $(ber_dump_LDADD) $(LIBS)
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
@@ -535,154 +560,154 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/writer.Plo@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 ber_dump-ber-dump.o: ber-dump.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-dump.o -MD -MP -MF $(DEPDIR)/ber_dump-ber-dump.Tpo -c -o ber_dump-ber-dump.o `test -f 'ber-dump.c' || echo '$(srcdir)/'`ber-dump.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-ber-dump.Tpo $(DEPDIR)/ber_dump-ber-dump.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ber-dump.c' object='ber_dump-ber-dump.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-dump.o -MD -MP -MF $(DEPDIR)/ber_dump-ber-dump.Tpo -c -o ber_dump-ber-dump.o `test -f 'ber-dump.c' || echo '$(srcdir)/'`ber-dump.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-ber-dump.Tpo $(DEPDIR)/ber_dump-ber-dump.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ber-dump.c' object='ber_dump-ber-dump.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-dump.o `test -f 'ber-dump.c' || echo '$(srcdir)/'`ber-dump.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-dump.o `test -f 'ber-dump.c' || echo '$(srcdir)/'`ber-dump.c
 
 ber_dump-ber-dump.obj: ber-dump.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-dump.obj -MD -MP -MF $(DEPDIR)/ber_dump-ber-dump.Tpo -c -o ber_dump-ber-dump.obj `if test -f 'ber-dump.c'; then $(CYGPATH_W) 'ber-dump.c'; else $(CYGPATH_W) '$(srcdir)/ber-dump.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-ber-dump.Tpo $(DEPDIR)/ber_dump-ber-dump.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ber-dump.c' object='ber_dump-ber-dump.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-dump.obj -MD -MP -MF $(DEPDIR)/ber_dump-ber-dump.Tpo -c -o ber_dump-ber-dump.obj `if test -f 'ber-dump.c'; then $(CYGPATH_W) 'ber-dump.c'; else $(CYGPATH_W) '$(srcdir)/ber-dump.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-ber-dump.Tpo $(DEPDIR)/ber_dump-ber-dump.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ber-dump.c' object='ber_dump-ber-dump.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-dump.obj `if test -f 'ber-dump.c'; then $(CYGPATH_W) 'ber-dump.c'; else $(CYGPATH_W) '$(srcdir)/ber-dump.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-dump.obj `if test -f 'ber-dump.c'; then $(CYGPATH_W) 'ber-dump.c'; else $(CYGPATH_W) '$(srcdir)/ber-dump.c'; fi`
 
 ber_dump-ber-decoder.o: ber-decoder.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-decoder.o -MD -MP -MF $(DEPDIR)/ber_dump-ber-decoder.Tpo -c -o ber_dump-ber-decoder.o `test -f 'ber-decoder.c' || echo '$(srcdir)/'`ber-decoder.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-ber-decoder.Tpo $(DEPDIR)/ber_dump-ber-decoder.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ber-decoder.c' object='ber_dump-ber-decoder.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-decoder.o -MD -MP -MF $(DEPDIR)/ber_dump-ber-decoder.Tpo -c -o ber_dump-ber-decoder.o `test -f 'ber-decoder.c' || echo '$(srcdir)/'`ber-decoder.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-ber-decoder.Tpo $(DEPDIR)/ber_dump-ber-decoder.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ber-decoder.c' object='ber_dump-ber-decoder.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-decoder.o `test -f 'ber-decoder.c' || echo '$(srcdir)/'`ber-decoder.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-decoder.o `test -f 'ber-decoder.c' || echo '$(srcdir)/'`ber-decoder.c
 
 ber_dump-ber-decoder.obj: ber-decoder.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-decoder.obj -MD -MP -MF $(DEPDIR)/ber_dump-ber-decoder.Tpo -c -o ber_dump-ber-decoder.obj `if test -f 'ber-decoder.c'; then $(CYGPATH_W) 'ber-decoder.c'; else $(CYGPATH_W) '$(srcdir)/ber-decoder.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-ber-decoder.Tpo $(DEPDIR)/ber_dump-ber-decoder.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ber-decoder.c' object='ber_dump-ber-decoder.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-decoder.obj -MD -MP -MF $(DEPDIR)/ber_dump-ber-decoder.Tpo -c -o ber_dump-ber-decoder.obj `if test -f 'ber-decoder.c'; then $(CYGPATH_W) 'ber-decoder.c'; else $(CYGPATH_W) '$(srcdir)/ber-decoder.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-ber-decoder.Tpo $(DEPDIR)/ber_dump-ber-decoder.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ber-decoder.c' object='ber_dump-ber-decoder.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-decoder.obj `if test -f 'ber-decoder.c'; then $(CYGPATH_W) 'ber-decoder.c'; else $(CYGPATH_W) '$(srcdir)/ber-decoder.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-decoder.obj `if test -f 'ber-decoder.c'; then $(CYGPATH_W) 'ber-decoder.c'; else $(CYGPATH_W) '$(srcdir)/ber-decoder.c'; fi`
 
 ber_dump-ber-help.o: ber-help.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-help.o -MD -MP -MF $(DEPDIR)/ber_dump-ber-help.Tpo -c -o ber_dump-ber-help.o `test -f 'ber-help.c' || echo '$(srcdir)/'`ber-help.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-ber-help.Tpo $(DEPDIR)/ber_dump-ber-help.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ber-help.c' object='ber_dump-ber-help.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-help.o -MD -MP -MF $(DEPDIR)/ber_dump-ber-help.Tpo -c -o ber_dump-ber-help.o `test -f 'ber-help.c' || echo '$(srcdir)/'`ber-help.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-ber-help.Tpo $(DEPDIR)/ber_dump-ber-help.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ber-help.c' object='ber_dump-ber-help.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-help.o `test -f 'ber-help.c' || echo '$(srcdir)/'`ber-help.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-help.o `test -f 'ber-help.c' || echo '$(srcdir)/'`ber-help.c
 
 ber_dump-ber-help.obj: ber-help.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-help.obj -MD -MP -MF $(DEPDIR)/ber_dump-ber-help.Tpo -c -o ber_dump-ber-help.obj `if test -f 'ber-help.c'; then $(CYGPATH_W) 'ber-help.c'; else $(CYGPATH_W) '$(srcdir)/ber-help.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-ber-help.Tpo $(DEPDIR)/ber_dump-ber-help.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ber-help.c' object='ber_dump-ber-help.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-ber-help.obj -MD -MP -MF $(DEPDIR)/ber_dump-ber-help.Tpo -c -o ber_dump-ber-help.obj `if test -f 'ber-help.c'; then $(CYGPATH_W) 'ber-help.c'; else $(CYGPATH_W) '$(srcdir)/ber-help.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-ber-help.Tpo $(DEPDIR)/ber_dump-ber-help.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ber-help.c' object='ber_dump-ber-help.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-help.obj `if test -f 'ber-help.c'; then $(CYGPATH_W) 'ber-help.c'; else $(CYGPATH_W) '$(srcdir)/ber-help.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-ber-help.obj `if test -f 'ber-help.c'; then $(CYGPATH_W) 'ber-help.c'; else $(CYGPATH_W) '$(srcdir)/ber-help.c'; fi`
 
 ber_dump-reader.o: reader.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-reader.o -MD -MP -MF $(DEPDIR)/ber_dump-reader.Tpo -c -o ber_dump-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-reader.Tpo $(DEPDIR)/ber_dump-reader.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reader.c' object='ber_dump-reader.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-reader.o -MD -MP -MF $(DEPDIR)/ber_dump-reader.Tpo -c -o ber_dump-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-reader.Tpo $(DEPDIR)/ber_dump-reader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='ber_dump-reader.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
 
 ber_dump-reader.obj: reader.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-reader.obj -MD -MP -MF $(DEPDIR)/ber_dump-reader.Tpo -c -o ber_dump-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-reader.Tpo $(DEPDIR)/ber_dump-reader.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reader.c' object='ber_dump-reader.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-reader.obj -MD -MP -MF $(DEPDIR)/ber_dump-reader.Tpo -c -o ber_dump-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-reader.Tpo $(DEPDIR)/ber_dump-reader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='ber_dump-reader.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
 
 ber_dump-writer.o: writer.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-writer.o -MD -MP -MF $(DEPDIR)/ber_dump-writer.Tpo -c -o ber_dump-writer.o `test -f 'writer.c' || echo '$(srcdir)/'`writer.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-writer.Tpo $(DEPDIR)/ber_dump-writer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='writer.c' object='ber_dump-writer.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-writer.o -MD -MP -MF $(DEPDIR)/ber_dump-writer.Tpo -c -o ber_dump-writer.o `test -f 'writer.c' || echo '$(srcdir)/'`writer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-writer.Tpo $(DEPDIR)/ber_dump-writer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='writer.c' object='ber_dump-writer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-writer.o `test -f 'writer.c' || echo '$(srcdir)/'`writer.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-writer.o `test -f 'writer.c' || echo '$(srcdir)/'`writer.c
 
 ber_dump-writer.obj: writer.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-writer.obj -MD -MP -MF $(DEPDIR)/ber_dump-writer.Tpo -c -o ber_dump-writer.obj `if test -f 'writer.c'; then $(CYGPATH_W) 'writer.c'; else $(CYGPATH_W) '$(srcdir)/writer.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-writer.Tpo $(DEPDIR)/ber_dump-writer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='writer.c' object='ber_dump-writer.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-writer.obj -MD -MP -MF $(DEPDIR)/ber_dump-writer.Tpo -c -o ber_dump-writer.obj `if test -f 'writer.c'; then $(CYGPATH_W) 'writer.c'; else $(CYGPATH_W) '$(srcdir)/writer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-writer.Tpo $(DEPDIR)/ber_dump-writer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='writer.c' object='ber_dump-writer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-writer.obj `if test -f 'writer.c'; then $(CYGPATH_W) 'writer.c'; else $(CYGPATH_W) '$(srcdir)/writer.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-writer.obj `if test -f 'writer.c'; then $(CYGPATH_W) 'writer.c'; else $(CYGPATH_W) '$(srcdir)/writer.c'; fi`
 
 ber_dump-asn1-parse.o: asn1-parse.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-parse.o -MD -MP -MF $(DEPDIR)/ber_dump-asn1-parse.Tpo -c -o ber_dump-asn1-parse.o `test -f 'asn1-parse.c' || echo '$(srcdir)/'`asn1-parse.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-asn1-parse.Tpo $(DEPDIR)/ber_dump-asn1-parse.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='asn1-parse.c' object='ber_dump-asn1-parse.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-parse.o -MD -MP -MF $(DEPDIR)/ber_dump-asn1-parse.Tpo -c -o ber_dump-asn1-parse.o `test -f 'asn1-parse.c' || echo '$(srcdir)/'`asn1-parse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-asn1-parse.Tpo $(DEPDIR)/ber_dump-asn1-parse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1-parse.c' object='ber_dump-asn1-parse.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-parse.o `test -f 'asn1-parse.c' || echo '$(srcdir)/'`asn1-parse.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-parse.o `test -f 'asn1-parse.c' || echo '$(srcdir)/'`asn1-parse.c
 
 ber_dump-asn1-parse.obj: asn1-parse.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-parse.obj -MD -MP -MF $(DEPDIR)/ber_dump-asn1-parse.Tpo -c -o ber_dump-asn1-parse.obj `if test -f 'asn1-parse.c'; then $(CYGPATH_W) 'asn1-parse.c'; else $(CYGPATH_W) '$(srcdir)/asn1-parse.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-asn1-parse.Tpo $(DEPDIR)/ber_dump-asn1-parse.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='asn1-parse.c' object='ber_dump-asn1-parse.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-parse.obj -MD -MP -MF $(DEPDIR)/ber_dump-asn1-parse.Tpo -c -o ber_dump-asn1-parse.obj `if test -f 'asn1-parse.c'; then $(CYGPATH_W) 'asn1-parse.c'; else $(CYGPATH_W) '$(srcdir)/asn1-parse.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-asn1-parse.Tpo $(DEPDIR)/ber_dump-asn1-parse.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1-parse.c' object='ber_dump-asn1-parse.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-parse.obj `if test -f 'asn1-parse.c'; then $(CYGPATH_W) 'asn1-parse.c'; else $(CYGPATH_W) '$(srcdir)/asn1-parse.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-parse.obj `if test -f 'asn1-parse.c'; then $(CYGPATH_W) 'asn1-parse.c'; else $(CYGPATH_W) '$(srcdir)/asn1-parse.c'; fi`
 
 ber_dump-asn1-func.o: asn1-func.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-func.o -MD -MP -MF $(DEPDIR)/ber_dump-asn1-func.Tpo -c -o ber_dump-asn1-func.o `test -f 'asn1-func.c' || echo '$(srcdir)/'`asn1-func.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-asn1-func.Tpo $(DEPDIR)/ber_dump-asn1-func.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='asn1-func.c' object='ber_dump-asn1-func.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-func.o -MD -MP -MF $(DEPDIR)/ber_dump-asn1-func.Tpo -c -o ber_dump-asn1-func.o `test -f 'asn1-func.c' || echo '$(srcdir)/'`asn1-func.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-asn1-func.Tpo $(DEPDIR)/ber_dump-asn1-func.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1-func.c' object='ber_dump-asn1-func.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-func.o `test -f 'asn1-func.c' || echo '$(srcdir)/'`asn1-func.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-func.o `test -f 'asn1-func.c' || echo '$(srcdir)/'`asn1-func.c
 
 ber_dump-asn1-func.obj: asn1-func.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-func.obj -MD -MP -MF $(DEPDIR)/ber_dump-asn1-func.Tpo -c -o ber_dump-asn1-func.obj `if test -f 'asn1-func.c'; then $(CYGPATH_W) 'asn1-func.c'; else $(CYGPATH_W) '$(srcdir)/asn1-func.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-asn1-func.Tpo $(DEPDIR)/ber_dump-asn1-func.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='asn1-func.c' object='ber_dump-asn1-func.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-asn1-func.obj -MD -MP -MF $(DEPDIR)/ber_dump-asn1-func.Tpo -c -o ber_dump-asn1-func.obj `if test -f 'asn1-func.c'; then $(CYGPATH_W) 'asn1-func.c'; else $(CYGPATH_W) '$(srcdir)/asn1-func.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-asn1-func.Tpo $(DEPDIR)/ber_dump-asn1-func.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1-func.c' object='ber_dump-asn1-func.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-func.obj `if test -f 'asn1-func.c'; then $(CYGPATH_W) 'asn1-func.c'; else $(CYGPATH_W) '$(srcdir)/asn1-func.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-asn1-func.obj `if test -f 'asn1-func.c'; then $(CYGPATH_W) 'asn1-func.c'; else $(CYGPATH_W) '$(srcdir)/asn1-func.c'; fi`
 
 ber_dump-oid.o: oid.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-oid.o -MD -MP -MF $(DEPDIR)/ber_dump-oid.Tpo -c -o ber_dump-oid.o `test -f 'oid.c' || echo '$(srcdir)/'`oid.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-oid.Tpo $(DEPDIR)/ber_dump-oid.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='oid.c' object='ber_dump-oid.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-oid.o -MD -MP -MF $(DEPDIR)/ber_dump-oid.Tpo -c -o ber_dump-oid.o `test -f 'oid.c' || echo '$(srcdir)/'`oid.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-oid.Tpo $(DEPDIR)/ber_dump-oid.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='oid.c' object='ber_dump-oid.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-oid.o `test -f 'oid.c' || echo '$(srcdir)/'`oid.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-oid.o `test -f 'oid.c' || echo '$(srcdir)/'`oid.c
 
 ber_dump-oid.obj: oid.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-oid.obj -MD -MP -MF $(DEPDIR)/ber_dump-oid.Tpo -c -o ber_dump-oid.obj `if test -f 'oid.c'; then $(CYGPATH_W) 'oid.c'; else $(CYGPATH_W) '$(srcdir)/oid.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-oid.Tpo $(DEPDIR)/ber_dump-oid.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='oid.c' object='ber_dump-oid.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-oid.obj -MD -MP -MF $(DEPDIR)/ber_dump-oid.Tpo -c -o ber_dump-oid.obj `if test -f 'oid.c'; then $(CYGPATH_W) 'oid.c'; else $(CYGPATH_W) '$(srcdir)/oid.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-oid.Tpo $(DEPDIR)/ber_dump-oid.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='oid.c' object='ber_dump-oid.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-oid.obj `if test -f 'oid.c'; then $(CYGPATH_W) 'oid.c'; else $(CYGPATH_W) '$(srcdir)/oid.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-oid.obj `if test -f 'oid.c'; then $(CYGPATH_W) 'oid.c'; else $(CYGPATH_W) '$(srcdir)/oid.c'; fi`
 
 ber_dump-util.o: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-util.o -MD -MP -MF $(DEPDIR)/ber_dump-util.Tpo -c -o ber_dump-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-util.Tpo $(DEPDIR)/ber_dump-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='ber_dump-util.o' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-util.o -MD -MP -MF $(DEPDIR)/ber_dump-util.Tpo -c -o ber_dump-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-util.Tpo $(DEPDIR)/ber_dump-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util.c' object='ber_dump-util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
 
 ber_dump-util.obj: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-util.obj -MD -MP -MF $(DEPDIR)/ber_dump-util.Tpo -c -o ber_dump-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ber_dump-util.Tpo $(DEPDIR)/ber_dump-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='ber_dump-util.obj' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -MT ber_dump-util.obj -MD -MP -MF $(DEPDIR)/ber_dump-util.Tpo -c -o ber_dump-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ber_dump-util.Tpo $(DEPDIR)/ber_dump-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='util.c' object='ber_dump-util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ber_dump_CFLAGS) $(CFLAGS) -c -o ber_dump-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
 
 .y.c:
-	$(am__skipyacc) $(SHELL) $(YLWRAP) $< y.tab.c $@ y.tab.h $*.h y.output $*.output -- $(YACCCOMPILE)
+	$(AM_V_YACC)$(am__skipyacc) $(SHELL) $(YLWRAP) $< y.tab.c $@ y.tab.h $*.h y.output $*.output -- $(YACCCOMPILE)
 
 mostlyclean-libtool:
 	-rm -f *.lo

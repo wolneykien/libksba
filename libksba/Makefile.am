@@ -24,7 +24,8 @@ AUTOMAKE_OPTIONS = dist-bzip2 no-dist-gzip
 # (A suitable gitlog-to-changelog script can be found in GnuPG master.)
 GITLOG_TO_CHANGELOG=gitlog-to-changelog
 
-EXTRA_DIST = autogen.sh COPYING.GPLv2 COPYING.GPLv3 COPYING.LGPLv3      \
+EXTRA_DIST = autogen.sh autogen.rc \
+             COPYING.GPLv2 COPYING.GPLv3 COPYING.LGPLv3                 \
              ChangeLog-2011 doc/ChangeLog-2011 src/ChangeLog-2011 	\
              tests/ChangeLog-2011 			     		\
              build-aux/git-log-footer build-aux/git-log-fix
@@ -40,7 +41,6 @@ endif
 SUBDIRS = m4 gl src ${tests} doc
 
 dist-hook: gen-ChangeLog
-	@set -e; echo "$(VERSION)" > $(distdir)/VERSION
 
 
 gen_start_date = 2011-12-01T00:00:00

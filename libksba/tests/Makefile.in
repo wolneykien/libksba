@@ -70,16 +70,18 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-TESTS = cert-basic$(EXEEXT) t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT)
-noinst_PROGRAMS = $(am__EXEEXT_1) t-cms-parser$(EXEEXT) \
-	t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT) t-ocsp$(EXEEXT) \
+TESTS = cert-basic$(EXEEXT) t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT) \
 	t-oid$(EXEEXT)
+noinst_PROGRAMS = $(am__EXEEXT_1) t-cms-parser$(EXEEXT) \
+	t-crl-parser$(EXEEXT) t-dnparser$(EXEEXT) t-ocsp$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/gl/m4/alloca.m4 \
-	$(top_srcdir)/gl/m4/gnulib.m4 $(top_srcdir)/m4/autobuild.m4 \
+	$(top_srcdir)/gl/m4/gnulib.m4 \
+	$(top_srcdir)/gl/m4/valgrind-tests.m4 \
+	$(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/gnupg-typedef.m4 \
 	$(top_srcdir)/m4/gpg-error.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -87,18 +89,21 @@ am__aclocal_m4_deps = $(top_srcdir)/gl/m4/alloca.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = cert-basic$(EXEEXT) t-crl-parser$(EXEEXT) \
-	t-dnparser$(EXEEXT)
+	t-dnparser$(EXEEXT) t-oid$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 cert_basic_SOURCES = cert-basic.c
 cert_basic_OBJECTS = cert-basic.$(OBJEXT)
 cert_basic_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
 cert_basic_DEPENDENCIES = ../src/libksba.la $(am__DEPENDENCIES_1)
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
 t_cms_parser_SOURCES = t-cms-parser.c
 t_cms_parser_OBJECTS = t-cms-parser.$(OBJEXT)
 t_cms_parser_LDADD = $(LDADD)
@@ -120,18 +125,31 @@ t_oid_OBJECTS = t-oid.$(OBJEXT)
 t_oid_LDADD = $(LDADD)
 t_oid_DEPENDENCIES = ../src/libksba.la $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC    " $@;
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD  " $@;
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = cert-basic.c t-cms-parser.c t-crl-parser.c t-dnparser.c \
 	$(t_ocsp_SOURCES) t-oid.c
 DIST_SOURCES = cert-basic.c t-cms-parser.c t-crl-parser.c t-dnparser.c \
@@ -151,6 +169,7 @@ ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 ALLOCA_H = @ALLOCA_H@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
 AS = @AS@
 AUTOCONF = @AUTOCONF@
@@ -181,6 +200,8 @@ FGREP = @FGREP@
 GPG_ERROR_CFLAGS = @GPG_ERROR_CFLAGS@
 GPG_ERROR_CONFIG = @GPG_ERROR_CONFIG@
 GPG_ERROR_LIBS = @GPG_ERROR_LIBS@
+GPG_ERROR_MT_CFLAGS = @GPG_ERROR_MT_CFLAGS@
+GPG_ERROR_MT_LIBS = @GPG_ERROR_MT_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -227,6 +248,7 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+VALGRIND = @VALGRIND@
 VERSION = @VERSION@
 YACC = @YACC@
 YFLAGS = @YFLAGS@
@@ -300,9 +322,11 @@ EXTRA_DIST = $(test_certs) samples/README mkoidtbl.awk
 BUILT_SOURCES = oidtranstbl.h
 CLEANFILES = oidtranstbl.h
 AM_CFLAGS = $(GPG_ERROR_CFLAGS)
+AM_LDFLAGS = -no-install
 noinst_HEADERS = t-common.h
 LDADD = ../src/libksba.la $(GPG_ERROR_LIBS)
 t_ocsp_SOURCES = t-ocsp.c sha1.c
+LOG_COMPILER = $(VALGRIND)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -349,22 +373,22 @@ clean-noinstPROGRAMS:
 	rm -f $$list
 cert-basic$(EXEEXT): $(cert_basic_OBJECTS) $(cert_basic_DEPENDENCIES) $(EXTRA_cert_basic_DEPENDENCIES) 
 	@rm -f cert-basic$(EXEEXT)
-	$(LINK) $(cert_basic_OBJECTS) $(cert_basic_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(cert_basic_OBJECTS) $(cert_basic_LDADD) $(LIBS)
 t-cms-parser$(EXEEXT): $(t_cms_parser_OBJECTS) $(t_cms_parser_DEPENDENCIES) $(EXTRA_t_cms_parser_DEPENDENCIES) 
 	@rm -f t-cms-parser$(EXEEXT)
-	$(LINK) $(t_cms_parser_OBJECTS) $(t_cms_parser_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(t_cms_parser_OBJECTS) $(t_cms_parser_LDADD) $(LIBS)
 t-crl-parser$(EXEEXT): $(t_crl_parser_OBJECTS) $(t_crl_parser_DEPENDENCIES) $(EXTRA_t_crl_parser_DEPENDENCIES) 
 	@rm -f t-crl-parser$(EXEEXT)
-	$(LINK) $(t_crl_parser_OBJECTS) $(t_crl_parser_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(t_crl_parser_OBJECTS) $(t_crl_parser_LDADD) $(LIBS)
 t-dnparser$(EXEEXT): $(t_dnparser_OBJECTS) $(t_dnparser_DEPENDENCIES) $(EXTRA_t_dnparser_DEPENDENCIES) 
 	@rm -f t-dnparser$(EXEEXT)
-	$(LINK) $(t_dnparser_OBJECTS) $(t_dnparser_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(t_dnparser_OBJECTS) $(t_dnparser_LDADD) $(LIBS)
 t-ocsp$(EXEEXT): $(t_ocsp_OBJECTS) $(t_ocsp_DEPENDENCIES) $(EXTRA_t_ocsp_DEPENDENCIES) 
 	@rm -f t-ocsp$(EXEEXT)
-	$(LINK) $(t_ocsp_OBJECTS) $(t_ocsp_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(t_ocsp_OBJECTS) $(t_ocsp_LDADD) $(LIBS)
 t-oid$(EXEEXT): $(t_oid_OBJECTS) $(t_oid_DEPENDENCIES) $(EXTRA_t_oid_DEPENDENCIES) 
 	@rm -f t-oid$(EXEEXT)
-	$(LINK) $(t_oid_OBJECTS) $(t_oid_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(t_oid_OBJECTS) $(t_oid_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -381,25 +405,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t-oid.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -718,7 +742,7 @@ oidtranstbl.h: Makefile mkoidtbl.awk
         for i in /etc/dumpasn1 /usr/local/bin /usr/local/share /usr/bin \
                  /usr/share ; do \
           if test -f $$i/dumpasn1.cfg; then f=$$i/dumpasn1.cfg; break; fi; \
-        done; $(AWK) -f $(srcdir)/mkoidtbl.awk $$f >$@
+        done; tr -d '\r' <$$f | $(AWK) -f $(srcdir)/mkoidtbl.awk >$@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
