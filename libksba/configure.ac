@@ -19,7 +19,7 @@
 
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
-min_automake_version="1.10"
+min_automake_version="1.14"
 
 
 # To build a release you need to create a tag with the version number
@@ -30,7 +30,7 @@ min_automake_version="1.10"
 m4_define([mym4_package],[libksba])
 m4_define([mym4_major], [1])
 m4_define([mym4_minor], [3])
-m4_define([mym4_micro], [2])
+m4_define([mym4_micro], [3])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -52,7 +52,7 @@ AC_INIT([mym4_package],[mym4_version], [http://bugs.gnupg.org])
 # Please remember to document interface changes in the NEWS file.
 LIBKSBA_LT_CURRENT=19
 LIBKSBA_LT_AGE=11
-LIBKSBA_LT_REVISION=3
+LIBKSBA_LT_REVISION=4
 #-------------------
 # If the API is changed in an incompatible way: increment the next counter.
 KSBA_CONFIG_API_VERSION=1
@@ -66,7 +66,7 @@ VERSION=$PACKAGE_VERSION
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/ksba.h])
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+AM_INIT_AUTOMAKE([serial-tests dist-bzip2 no-dist-gzip])
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
