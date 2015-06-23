@@ -1,8 +1,8 @@
 %def_disable static
 
 Name: libksba
-Version: 1.3.2
-Release: alt0.M70P.1
+Version: 1.3.3
+Release: alt1
 
 Group: System/Libraries
 Summary: X.509 library
@@ -80,6 +80,9 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
+* Tue Jun 23 2015 Sergey V Turchin <zerg@altlinux.org> 1.3.3-alt1
+- new version
+
 * Tue Nov 25 2014 Sergey V Turchin <zerg@altlinux.org> 1.3.2-alt0.M70P.1
 - built for M70P
 
