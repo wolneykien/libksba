@@ -43,7 +43,7 @@ Static libraries for the %name-devel package
 %setup -q
 %patch1 -p1
 #%patch2 -p1
-%patch10 -p1
+#%patch10 -p1
 
 #__aclocal
 #__autoconf
