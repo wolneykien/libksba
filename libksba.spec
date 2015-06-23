@@ -63,6 +63,7 @@ Static libraries for the %name-devel package
 
 %files
 %doc AUTHORS NEWS README 
+%_libdir/*.so.8
 %_libdir/*.so.*
 
 %files -n %name-devel
