@@ -42,6 +42,11 @@
 #include "ber-help.h"
 
 
+/* The maximum length we allow for an image, that is for a BER encoded
+ * object.  */
+#define MAX_IMAGE_LENGTH (16 * 1024 * 1024)
+
+
 struct decoder_state_item_s {
   AsnNode node;
   int went_up;
@@ -857,12 +862,19 @@ decoder_next (BerDecoder d)
       if (!d->image.buf)
         {
           /* We need some extra bytes to store the stuff we read ahead
-             at the end of the module which is later pushed back. */
+           * at the end of the module which is later pushed back.  We
+           * also clear the buffer because there is no guarantee that
+           * we will copy data to all bytes of the buffer: A broken
+           * ASN.1 encoding may thus lead to access of uninitialized
+           * data even if we make sure that that access is not our of
+           * bounds. */
           d->image.used = 0;
           d->image.length = ti.length + 100;
           if (d->image.length < ti.length)
             return gpg_error (GPG_ERR_BAD_BER);
-          d->image.buf = xtrymalloc (d->image.length);
+          if (d->image.length > MAX_IMAGE_LENGTH)
+            return gpg_error (GPG_ERR_TOO_LARGE);
+          d->image.buf = xtrycalloc (1, d->image.length);
           if (!d->image.buf)
             return gpg_error (GPG_ERR_ENOMEM);
         }
@@ -1106,9 +1118,12 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
           if (!buf || buflen < d->val.length)
             {
               xfree (buf);
+              buf = NULL;
               buflen = d->val.length + 100;
               if (buflen < d->val.length)
                 err = gpg_error (GPG_ERR_BAD_BER); /* Overflow */
+              else if (buflen > MAX_IMAGE_LENGTH)
+                err = gpg_error (GPG_ERR_TOO_LARGE);
               else
                 {
                   buf = xtrymalloc (buflen);
@@ -1133,7 +1148,7 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
               p = ksba_oid_to_str (buf, n);
               break;
             default:
-              for (i=0; i < n && i < 20; i++)
+              for (i=0; i < n && (d->debug || i < 20); i++)
                 fprintf (fp,"%02x", buf[i]);
               if (i < n)
                 fputs ("..more..", fp);
@@ -1242,9 +1257,12 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
           if (!buf || buflen < d->val.length)
             {
               xfree (buf);
+              buf = NULL;
               buflen = d->val.length + 100;
               if (buflen < d->val.length)
                 err = gpg_error (GPG_ERR_BAD_BER);
+              else if (buflen > MAX_IMAGE_LENGTH)
+                err = gpg_error (GPG_ERR_TOO_LARGE);
               else
                 {
                   buf = xtrymalloc (buflen);

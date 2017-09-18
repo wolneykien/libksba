@@ -464,7 +464,10 @@ ksba_cert_get_digest_algo (ksba_cert_t cert)
 
   n = _ksba_asn_find_node (cert->root, "Certificate.signatureAlgorithm");
   if (!n || n->off == -1)
-    err = gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+    {
+      algo = NULL;
+      err = gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+    }
   else
     err = _ksba_parse_algorithm_identifier (cert->image + n->off,
                                             n->nhdr + n->len, &nread, &algo);
@@ -1335,9 +1338,15 @@ ksba_cert_get_cert_policies (ksba_cert_t cert, char **r_policies)
                   err = gpg_error (GPG_ERR_NOT_DER_ENCODED);
                   goto leave;
                 }
+              if (ti.length > derlen)
+                {
+                  err = gpg_error (GPG_ERR_BAD_BER);
+                  goto leave;
+                }
               if (!ti.length)
                 {
-                  err = gpg_error (GPG_ERR_INV_CERT_OBJ); /* no empty inner SEQ */
+                  /* We do not accept an empty inner SEQ */
+                  err = gpg_error (GPG_ERR_INV_CERT_OBJ);
                   goto leave;
                 }
               if (ti.nhdr+ti.length > seqlen)
@@ -1354,6 +1363,11 @@ ksba_cert_get_cert_policies (ksba_cert_t cert, char **r_policies)
               if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID))
                 {
                   err = gpg_error (GPG_ERR_INV_CERT_OBJ);
+                  goto leave;
+                }
+              if (ti.length > derlen)
+                {
+                  err = gpg_error (GPG_ERR_BAD_BER);
                   goto leave;
                 }
               if (ti.nhdr+ti.length > seqseqlen)
@@ -1456,6 +1470,16 @@ ksba_cert_get_ext_key_usages (ksba_cert_t cert, char **result)
               if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID))
                 {
                   err = gpg_error (GPG_ERR_INV_CERT_OBJ);
+                  goto leave;
+                }
+              if (ti.ndef)
+                {
+                  err = gpg_error (GPG_ERR_NOT_DER_ENCODED);
+                  goto leave;
+                }
+              if (ti.length > derlen)
+                {
+                  err = gpg_error (GPG_ERR_BAD_BER);
                   goto leave;
                 }
 
@@ -1562,6 +1586,8 @@ parse_distribution_point (const unsigned char *der, size_t derlen,
       unsigned int bits, mask;
       int i, unused, full;
 
+      if (!ti.length || ti.length > derlen)
+        return gpg_error (GPG_ERR_ENCODING_PROBLEM);
       unused = *der++; derlen--;
       ti.length--;
       if ((!ti.length && unused) || unused/8 > ti.length)

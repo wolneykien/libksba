@@ -14,6 +14,9 @@
 /* GIT commit id revision used to build this package */
 #undef BUILD_REVISION
 
+/* The time this package was configured for a build */
+#undef BUILD_TIMESTAMP
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */

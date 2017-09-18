@@ -1,3 +1,98 @@
+2016-08-22  Werner Koch  <wk@gnupg.org>
+
+	Release 1.3.5.
+	* configure.ac: Set LT version to C19/A/11/R6.
+
+	Use size_t for the result of fread.
+	* src/reader.c (ksba_reader_read): Make 'n' and size_t.
+
+	Limit allocation in the BER decoder to 16 MiB.
+	* src/ber-decoder.c (MAX_IMAGE_LENGTH): New.
+	(decoder_next): Limit allcoation to MAX_IMAGE_LENGTH.
+	(_ksba_ber_decoder_dump, _ksba_ber_decoder_decode): Ditto.
+
+2016-07-17  Tomáš Trnka  <tomastrnka@gmx.com>
+
+	Encode OCSP nonce value as an octet string (RFC 6960)
+	* src/ocsp.c (ksba_ocsp_set_nonce): Stop removing the sign bit.
+	 (write_request_extensions): Encode nonce as octet string.
+	 (parse_response_extensions): Decode nonce as octet string.
+
+2016-07-13  Werner Koch  <wk@gnupg.org>
+
+	build: Update config.{guess,sub} to {2016-05-15,2016-06-20}.
+	* build-aux/config.guess: Update.
+	* build-aux/config.sub: Update.
+
+2016-06-27  Werner Koch  <wk@gnupg.org>
+
+	tests: Fix a memory leak.
+	* tests/t-oid.c (test_oid_to_str): Free STR.
+
+	Use modern error macros and fix a missing assignment.
+	* src/ocsp.c: Remove errno.h.  Replace gpg_error_from_errno(errno) by
+	gpg_error_from_syserror ().
+	(parse_response): Ditto.  Return direct becuase static analyzer may
+	not grasp that  gpg_error_from_syserror will never return false.
+	(ksba_ocsp_get_responder_id): Actually return an error for NO_DATA.
+
+	Detect invalid RDN names and avoid a read from uninitialized variable.
+	* src/dn.c (parse_rdn): Bail out for an invalid name.
+
+2016-05-25  Werner Koch  <wk@gnupg.org>
+	    Pascal Cuoq  <cuoq@trust-in-soft.com>
+
+	Fix OOB read in parse_distribution_point.
+	* src/cert.c (parse_distribution_point): Check TI.length.
+
+2016-05-11  Werner Koch  <wk@gnupg.org>
+
+	Make sure that ASN.1 data is stored in an all-initialized buffer.
+	* src/ber-decoder.c (decoder_next): Clear the image buffer.
+
+2016-05-03  Werner Koch  <wk@gnupg.org>
+
+	Release 1.3.4.
+	* configure.ac: Set LT version to C19/A11/R5.
+
+	Update config.{guess,sub} to 2016-04-02 and 2016-03-30.
+	* build-aux/config.guess: Update.
+	* build-aux/config.sub: Update.
+
+	Create an SWDB file during "make distcheck"
+	* Makefile.am (distcheck-hook): New.
+
+	Fix an undefined return value in ksba_cert_get_digest_algo.
+	* src/cert.c (ksba_cert_get_digest_algo): Set ALGO in the error case.
+	* tests/cert-basic.c (one_file): Take care of printf which does not
+	handle NULL for %s
+
+	Fix an OOB read access in _ksba_dn_to_str.
+	* src/dn.c (append_utf8_value): Use a straightforward check to fix an
+	off-by-one.
+
+	Fix possible read access beyond the buffer.
+	* src/ber-help.c (_ksba_ber_parse_tl): Add extra sanity check.
+	* src/cert.c (ksba_cert_get_cert_policies): Check TLV given length
+	against buffer length.
+	(ksba_cert_get_ext_key_usages): Ditto.
+	* src/ocsp.c (parse_asntime_into_isotime): Ditto.
+
+2015-10-28  Werner Koch  <wk@gnupg.org>
+
+	Add more curves to the name->OID table.
+	* src/keyinfo.c (curve_names): Add more curves.
+
+	Fix lookup of ECC OIDs by name.
+	* src/keyinfo.c (get_ecc_curve_oid): Fix obviously never tested table
+	lookup.
+
+2015-08-25  Werner Koch  <wk@gnupg.org>
+
+	Add configure option --enable-build-timestamp.
+	* configure.ac (BUILD_TIMESTAMP): Set to "<none>" by default.  Add
+	ac_define_unquoted.
+
 2015-04-10  Werner Koch  <wk@gnupg.org>
 
 	Release 1.3.3.
