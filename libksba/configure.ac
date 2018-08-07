@@ -30,7 +30,7 @@ min_automake_version="1.14"
 m4_define([mym4_package],[libksba])
 m4_define([mym4_major], [1])
 m4_define([mym4_minor], [3])
-m4_define([mym4_micro], [5])
+m4_define([mym4_micro], [6])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -125,6 +125,18 @@ AC_PROG_MAKE_SET
 gl_EARLY
 #AC_ARG_PROGRAM
 AC_PROG_YACC
+AX_PROG_BISON([have_bison=yes],[have_bison=no])
+
+if test "$USE_MAINTAINER_MODE" = "yes"; then
+	AC_CHECK_PROGS(GCOV, [gcov], gcov)
+	# gcov coverage reporting
+	AC_TDD_GCOV
+	AC_SUBST(COVERAGE_CFLAGS)
+	AC_SUBST(COVERAGE_LDFLAGS)
+else
+	AM_CONDITIONAL(HAVE_GCOV, false)
+fi
+
 AC_C_INLINE
 
 # We need to compile and run a program on the build machine.
@@ -210,6 +222,10 @@ case "${host}" in
       ;;
     *-*-mingw32*)
       have_w32_system=yes
+      ;;
+     *-apple-darwin*)
+      AC_DEFINE(_DARWIN_C_SOURCE, 900000L,
+                Expose all libc features (__DARWIN_C_FULL).)
       ;;
     *)
       ;;
@@ -406,6 +422,12 @@ AC_SUBST(BUILD_TIMESTAMP)
 AC_DEFINE_UNQUOTED(BUILD_TIMESTAMP, "$BUILD_TIMESTAMP",
                    [The time this package was configured for a build])
 
+build_doc=yes
+AC_ARG_ENABLE([doc], AC_HELP_STRING([--disable-doc],
+                                    [do not build the documentation]),
+                     build_doc=$enableval, build_doc=yes)
+AM_CONDITIONAL([BUILD_DOC], [test "x$build_doc" != xno])
+
 
 AC_CONFIG_FILES([
 Makefile
@@ -419,6 +441,13 @@ doc/Makefile
 ])
 AC_OUTPUT
 
+if test x"$have_bison" = xno; then
+    AC_MSG_NOTICE([[
+***
+*** Note: The installed yacc version is not GNU Bison.  You need
+*** to install Bison if you want to change any grammar (.y) file.
+***]])
+fi
 
 echo "
         Libksba v${VERSION} has been configured as follows:
