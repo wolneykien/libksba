@@ -11,9 +11,6 @@ License: LGPLv3 / GPLv2
 
 Source0: %name-%version.tar.bz2
 Patch1:		%{name}-info.patch
-Patch2:		%{name}-link.patch
-# ALT
-Patch10: libksba-1.0.2-alt-dont-req-new-tools.patch
 
 # Automatically added by buildreq on Tue Apr 06 2004 (-bi)
 #BuildRequires: gcc-c++ gcc-g77 libgcrypt-devel libgpg-error-devel libstdc++-devel
@@ -44,8 +41,6 @@ Static libraries for the %name-devel package
 %prep
 %setup -q
 %patch1 -p1
-#%patch2 -p1
-#%patch10 -p1
 
 #__aclocal
 #__autoconf
