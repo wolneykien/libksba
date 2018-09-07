@@ -1,7 +1,7 @@
 %def_disable static
 
 Name: libksba
-Version: 1.3.6
+Version: 1.3.6.dev
 Release: alt1%ubt
 
 Group: System/Libraries
@@ -78,8 +78,8 @@ Static libraries for the %name-devel package
 %endif
 
 %changelog
-* Tue Aug 07 2018 Paul Wolneykien <manowar@altlinux.org> 1.3.6-alt1%ubt
-- New version 1.3.6.
+* Tue Aug 07 2018 Paul Wolneykien <manowar@altlinux.org> 1.3.6.dev-alt1%ubt
+- New version 1.3.6 (development).
 
 * Mon Sep 18 2017 Sergey V Turchin <zerg@altlinux.org> 1.3.5-alt1%ubt
 - new version
