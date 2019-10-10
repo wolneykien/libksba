@@ -249,7 +249,8 @@ static gpg_error_t
 parse_encrypted_content_info (ksba_reader_t reader,
                               unsigned long *r_len, int *r_ndef,
                               char **r_cont_oid, char **r_algo_oid,
-                              char **r_algo_parm, size_t *r_algo_parmlen,
+                              struct algorithm_param_s **r_algo_parm,
+                              int *r_algo_parmcount,
                               int *has_content)
 {
   struct tag_info ti;
@@ -259,8 +260,8 @@ parse_encrypted_content_info (ksba_reader_t reader,
   unsigned char tmpbuf[500]; /* for OID or algorithmIdentifier */
   char *cont_oid = NULL;
   char *algo_oid = NULL;
-  char *algo_parm = NULL;
-  size_t algo_parmlen;
+  struct algorithm_param_s *algo_parm = NULL;
+  int algo_parmcount = 0;
   size_t nread;
 
   /* Fixme: release oids in case of errors */
@@ -326,7 +327,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
     return err;
   err = _ksba_parse_algorithm_identifier2 (tmpbuf, ti.nhdr+ti.length,
                                            &nread,&algo_oid,
-                                           &algo_parm, &algo_parmlen);
+                                           &algo_parm, &algo_parmcount);
   if (err)
     return err;
   assert (nread <= ti.nhdr + ti.length);
@@ -375,7 +376,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
   *r_cont_oid = cont_oid;
   *r_algo_oid = algo_oid;
   *r_algo_parm = algo_parm;
-  *r_algo_parmlen = algo_parmlen;
+  *r_algo_parmcount = algo_parmcount;
   return 0;
 }
 
@@ -829,8 +830,8 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
   unsigned long off, len;
   char *cont_oid = NULL;
   char *algo_oid = NULL;
-  char *algo_parm = NULL;
-  size_t algo_parmlen = 0;
+  struct algorithm_param_s *algo_parm = NULL;
+  int algo_parmcount = 0;
   struct value_tree_s *vt, **vtend;
 
   /* get the version */
@@ -933,17 +934,46 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
                                       &encr_cont_len, &encr_cont_ndef,
                                       &cont_oid,
                                       &algo_oid,
-                                      &algo_parm, &algo_parmlen,
+                                      &algo_parm, &algo_parmcount,
                                       &has_content);
   if (err)
     return err;
+
   cms->inner_cont_len = encr_cont_len;
   cms->inner_cont_ndef = encr_cont_ndef;
   cms->inner_cont_oid = cont_oid;
   cms->detached_data = !has_content;
   cms->encr_algo_oid = algo_oid;
-  cms->encr_iv = algo_parm; algo_parm = NULL;
-  cms->encr_ivlen = algo_parmlen;
+
+  if (algo_parmcount > 0)
+	{
+      /* The IV value is set for any known algorithm */
+	  if (algo_parm[0].tag == TYPE_OCTET_STRING &&
+		  algo_parm[0].class == CLASS_UNIVERSAL &&
+		  !algo_parm[0].constructed)
+		{
+		  cms->encr_iv = algo_parm[0].value;
+		  algo_parm[0].value = NULL;
+		  cms->encr_ivlen = algo_parm[0].length;
+		}
+
+      /* ...while the S-box parameter is GOST-specific: */
+      if (0 == strcmp (algo_oid, "1.2.643.2.2.21"))
+        {
+          if (algo_parm[1].tag == TYPE_OBJECT_ID &&
+              algo_parm[1].class == CLASS_UNIVERSAL &&
+              !algo_parm[1].constructed)
+            {
+              cms->encr_algo_sbox_oid =
+                ksba_oid_to_str (algo_parm[1].value, algo_parm[1].length);
+            }
+        }
+	}
+
+  release_algorithm_params (algo_parm, algo_parmcount);
+
+  //TODO: Use other parameters?
+
   if (!env_data_ndef)
     {
       len = ksba_reader_tell (cms->reader) - off;
