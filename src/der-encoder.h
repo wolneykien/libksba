@@ -46,8 +46,9 @@ gpg_error_t _ksba_der_encoder_set_writer (DerEncoder d, ksba_writer_t w);
 gpg_error_t _ksba_der_write_integer (ksba_writer_t w,
                                      const unsigned char *value);
 gpg_error_t _ksba_der_write_algorithm_identifier (
-            ksba_writer_t w, const char *oid, const void *parm, size_t parmlen);
-
+                ksba_writer_t w, const char *oid,
+				struct algorithm_param_s *param,
+				int param_count);
 
 
 gpg_error_t _ksba_der_copy_tree (AsnNode dst,

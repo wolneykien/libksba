@@ -136,28 +136,36 @@ _ksba_der_encoder_set_writer (DerEncoder d, ksba_writer_t w)
       parameters   ANY DEFINED BY algorithm OPTIONAL
   }
 
-  where parameters will be set to NULL if parm is NULL or to an octet
-  string with the given parm.  As a special hack parameter will not be
-  written if PARM is given but parmlen is 0.  */
+  where parameters will be set to NULL if params is NULL or to the
+  corresponding tags with the given values. As a special hack parameter
+  will not be written if params is not NULL but param_count is 0.
+  If param_count > 1 than they are wrapped in a SEQUENCE. */
 gpg_error_t
 _ksba_der_write_algorithm_identifier (ksba_writer_t w, const char *oid,
-                                      const void *parm, size_t parmlen)
+									  struct algorithm_param_s *params,
+									  int param_count)
 {
   gpg_error_t err;
   unsigned char *buf;
   size_t len;
-  int no_null = (parm && !parmlen);
+  int no_null = (params && !param_count);
 
   err = ksba_oid_from_str (oid, &buf, &len);
   if (err)
     return err;
+
+  int i; size_t param_len = 0;
+  for (i = 0; i < param_count; i++)
+	param_len += params[i].length;
 
   /* write the sequence */
   /* fixme: the the length to encode the TLV values are actually not
      just 2 byte each but depend on the length of the values - for
      our purposes the static values do work.  */
   err = _ksba_ber_write_tl (w, TYPE_SEQUENCE, CLASS_UNIVERSAL, 1,
-                            (no_null? 2:4) + len + (parm? parmlen:0));
+                            2 + len + 2*param_count + param_len +
+							(param_count > 1 ? 2 : 0) +
+							(!params && !no_null ? 2 : 0));
   if (err)
     goto leave;
 
@@ -171,12 +179,19 @@ _ksba_der_write_algorithm_identifier (ksba_writer_t w, const char *oid,
   /* Write the parameter */
   if (no_null)
     ;
-  else if (parm)
+  else if (params)
     {
-      err = _ksba_ber_write_tl (w, TYPE_OCTET_STRING, CLASS_UNIVERSAL,
-                                0, parmlen);
-      if (!err)
-        err = ksba_writer_write (w, parm, parmlen);
+	  if (param_count > 1)
+		err = _ksba_ber_write_tl (w, TYPE_SEQUENCE, CLASS_UNIVERSAL, 1,
+								  2*param_count + param_len);
+	  for (i = 0; i < param_count; i++)
+		{
+		  if (err) break;
+		  err = _ksba_ber_write_tl (w, params[i].tag, params[i].class,
+									params[i].constructed, params[i].length);
+		  if (!err)
+			err = ksba_writer_write (w, params[i].value, params[i].length);
+		}
     }
   else
     {
