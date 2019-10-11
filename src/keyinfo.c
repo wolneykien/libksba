@@ -114,7 +114,6 @@ static const struct algo_table_s pk_algo_table[] = {
     "1.2.643.7.1.1.1.2",
     "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
     1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
-
   {NULL}
 };
 
@@ -265,10 +264,26 @@ static const struct algo_table_s enc_algo_table[] = {
     "1.2.840.113549.1.1.1", /* rsaEncryption (RSAES-PKCA1-v1.5) */
     "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01", 9,
     1, PKALGO_RSA, "rsa", "a", "\x82" },
+
+  /* The GOST encryption paramsters are:
+       * k -- wrapped key;
+       * m -- MAC;
+       * c, d / C, D -- curve and digest OIDs;
+       * Q -- ephemeral public key;
+       * u -- UKM.
+  */
   { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
     "1.2.643.2.2.19",
     "\x2a\x85\x03\x02\x02\x13", 6,
-    1, PKALGO_GOST, "gost", "--ab-c--d-CD-ef", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-CD", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
+    "1.2.643.7.1.1.1.1",
+    "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
+    1, PKALGO_GOST, "gost", "--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
+    "1.2.643.7.1.1.1.2",
+    "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
+    1, PKALGO_GOST, "gost", "--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
   {NULL}
 };
 
@@ -649,7 +664,8 @@ init_stringbuf (struct stringbuf *sb, int initiallen)
 }
 
 static void
-put_stringbuf_mem (struct stringbuf *sb, const char *text, size_t n)
+put_stringbuf_mem (struct stringbuf *sb, const char *text, size_t n,
+                   int reverse)
 {
   if (sb->out_of_core)
     return;
@@ -667,14 +683,20 @@ put_stringbuf_mem (struct stringbuf *sb, const char *text, size_t n)
         }
       sb->buf = p;
     }
-  memcpy (sb->buf+sb->len, text, n);
+
+  if (!reverse)
+    memcpy (sb->buf + sb->len, text, n);
+  else
+    for (int i = 0; i < n; i++)
+      sb->buf[sb->len + i] = text[n - 1 - i];
+
   sb->len += n;
 }
 
 static void
 put_stringbuf (struct stringbuf *sb, const char *text)
 {
-  put_stringbuf_mem (sb, text,strlen (text));
+  put_stringbuf_mem (sb, text,strlen (text), 0);
 }
 
 static void
@@ -683,7 +705,17 @@ put_stringbuf_mem_sexp (struct stringbuf *sb, const char *text, size_t length)
   char buf[20];
   sprintf (buf,"%u:", (unsigned int)length);
   put_stringbuf (sb, buf);
-  put_stringbuf_mem (sb, text, length);
+  put_stringbuf_mem (sb, text, length, 0);
+}
+
+static void
+put_stringbuf_mem_sexp_rs (struct stringbuf *sb, const char *text,
+                           size_t length)
+{
+  char buf[20];
+  sprintf (buf,"%u:", (unsigned int)length);
+  put_stringbuf (sb, buf);
+  put_stringbuf_mem (sb, text, length, 1);
 }
 
 static void
@@ -1304,6 +1336,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
   const unsigned char *ctrl;
   const char *elem;
   struct stringbuf sb;
+  size_t lastseqlen = derlen;
 
   /* FIXME: The entire function is very similar to keyinfo_to_sexp */
   *r_string = NULL;
@@ -1330,6 +1363,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
         return gpg_error (GPG_ERR_UNEXPECTED_TAG); /* not a SEQUENCE */
       TLV_LENGTH(der);
       break;
+
     default:
       return gpg_error (GPG_ERR_INV_KEYINFO);
     }
@@ -1343,7 +1377,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
   for (algoidx=0; algo_table[algoidx].oid; algoidx++)
     {
       if ( len == algo_table[algoidx].oidlen
-           && !memcmp (der+off, algo_table[algoidx].oid, len))
+           && !memcmp (der+off, algo_table[algoidx].oid, len) )
         break;
     }
   if (!algo_table[algoidx].oid)
@@ -1383,6 +1417,14 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
      whatever library is used */
   put_stringbuf_sexp (&sb, algo_table[algoidx].algo_string);
 
+  if (PKALGO_GOST == algo_table[algoidx].pkalgo)
+    {
+      put_stringbuf (&sb, "(");
+      put_stringbuf_sexp (&sb, "flags");
+      put_stringbuf_sexp (&sb, "gost");
+      put_stringbuf (&sb, ")");
+    }
+
   /* Insert the curve name for ECC. */
   if (algo_table[algoidx].pkalgo == PKALGO_ECC && parm_oid)
     {
@@ -1398,12 +1440,28 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
       && algo_table[algoidx].parmelem_string
       && algo_table[algoidx].parmctrl_string)
     {
+      lastseqlen = parmderlen;
       elem = algo_table[algoidx].parmelem_string;
       ctrl = algo_table[algoidx].parmctrl_string;
       for (; *elem; ctrl++, elem++)
         {
-          int is_int;
-          int is_oid;
+          int is_int = 0;
+          int is_oid = 0;
+
+          while ('?' == *elem)
+            {
+              elem++;
+              if (0 == lastseqlen)
+                {
+                  elem++;
+                  ctrl++;
+                }
+            }
+
+          if (!*elem) break;
+
+          if (0 == lastseqlen)
+            lastseqlen = parmderlen;
 
           if ( (*ctrl & 0x80) && !elem[1] )
             {
@@ -1411,6 +1469,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               is_int = 1;
               is_oid = 0;
               len = parmderlen;
+              lastseqlen = len;
             }
           else
             {
@@ -1419,6 +1478,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
                   xfree (parm_oid);
                   return gpg_error (GPG_ERR_INV_KEYINFO);
                 }
+              size_t _lastderlen = parmderlen;
               c = *parmder++; parmderlen--;
               if ( c != *ctrl )
                 {
@@ -1429,13 +1489,10 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               is_int |= c == 0x04;
               is_oid = c == TYPE_OBJECT_ID;
               TLV_LENGTH (parmder);
+              lastseqlen -= _lastderlen - parmderlen;
             }
-          if (*elem == '_') /* Skip the element.  */
-            {
-              parmder += len;
-              parmderlen -= len;
-            }
-          else if (is_int && *elem != '-')  /* Take this integer.  */
+
+          if (is_int && *elem != '-')  /* Take this integer.  */
             {
               char tmp[2];
 
@@ -1443,8 +1500,6 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               tmp[0] = *elem; tmp[1] = 0;
               put_stringbuf_sexp (&sb, tmp);
               put_stringbuf_mem_sexp (&sb, parmder, len);
-              parmder += len;
-              parmderlen -= len;
               put_stringbuf (&sb, ")");
             }
           else if (is_oid && *elem != '-')  /* Take this OID.  */
@@ -1467,28 +1522,53 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
                   put_stringbuf_sexp (&sb, tmp);
                 }
               put_stringbuf_sexp (&sb, parm_oid);
+              put_stringbuf (&sb, ")");
+            }
+
+          if ('-' == *elem)
+            {
+              lastseqlen = len;
+            }
+          else
+            {
               parmder += len;
               parmderlen -= len;
-              put_stringbuf (&sb, ")");
+              lastseqlen -= len;
             }
         }
     }
 
   /* FIXME: We don't release the stringbuf in case of error
      better let the macro jump to a label */
+  lastseqlen = derlen;
   elem = algo_table[algoidx].elem_string;
   ctrl = algo_table[algoidx].ctrl_string;
   for (; *elem; ctrl++, elem++)
     {
-      int is_int;
-      int is_oid;
-      int is_gost_key;
+      int is_int = 0;
+      int is_oid = 0;
+
+      while ('?' == *elem)
+        {
+          elem++;
+          if (0 == lastseqlen)
+            {
+              elem++;
+              ctrl++;
+            }
+        }
+
+      if (!*elem) break;
+
+      if (0 == lastseqlen)
+        lastseqlen = derlen;
 
       if ( (*ctrl & 0x80) && !elem[1] )
         {  /* Hack to allow a raw value */
           is_int = 1;
-          is_gost_key = 0;
           len = derlen;
+          lastseqlen = len;
+          is_bitstr = 0;
         }
       else
         {
@@ -1497,6 +1577,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               xfree (parm_oid);
               return gpg_error (GPG_ERR_INV_KEYINFO);
             }
+          size_t _lastderlen = derlen;
           c = *der++; derlen--;
           if ( c != *ctrl )
             {
@@ -1507,23 +1588,19 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           is_int |= (c == 0x04 && *elem != 'Q');
           is_bitstr = c == 0x03;
           is_oid = c == TYPE_OBJECT_ID;
-          is_gost_key = (c == 0x04 && *elem == 'Q');
           TLV_LENGTH (der);
-          is_gost_key &= (len == 0x40)||(len == 0x80);
+          lastseqlen -= _lastderlen - derlen;
         }
-      if (*elem == '_') /* Skip the element.  */
-        {
-          der += len;
-          derlen -= len;
-        }
-      else if (is_bitstr)
+
+      if (is_bitstr)
         {
           if (!derlen)
             return gpg_error (GPG_ERR_INV_KEYINFO);
-          c = *der++; derlen--;
+          c = *der++; derlen--; lastseqlen--;
           if (c)
             fprintf (stderr, "warning: number of unused bits is not zero\n");
-        }
+          continue;
+		}
       else if (is_int && *elem == 'G' && len%2 == 0)
         {
           char tmp[2];
@@ -1539,9 +1616,6 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           put_stringbuf_sexp (&sb, tmp);
           put_stringbuf_mem_sexp (&sb, der, len/2);
           put_stringbuf (&sb, ")");
-
-          der += len;
-          derlen -= len;
         }
       else if (is_int && *elem != '-')
         { /* take this integer */
@@ -1550,9 +1624,13 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           put_stringbuf (&sb, "(");
           tmp[0] = *elem; tmp[1] = 0;
           put_stringbuf_sexp (&sb, tmp);
-          put_stringbuf_mem_sexp (&sb, der, len);
-          der += len;
-          derlen -= len;
+
+          if (PKALGO_GOST == algo_table[algoidx].pkalgo
+              && 'u' == *elem)
+            /* UKM -- reversed */
+            put_stringbuf_mem_sexp_rs (&sb, der, len);
+          else
+            put_stringbuf_mem_sexp (&sb, der, len);
           put_stringbuf (&sb, ")");
         }
       else if (is_oid && *elem != '-')  /* Take this OID.  */
@@ -1575,28 +1653,35 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               put_stringbuf_sexp (&sb, tmp);
             }
           put_stringbuf_sexp (&sb, parm_oid);
-          der += len;
-          derlen -= len;
           put_stringbuf (&sb, ")");
         }
-      else if (is_gost_key && *elem != '-')  /* Take GOST R 34.10-2001/12 key. */
+      else if (PKALGO_GOST == algo_table[algoidx].pkalgo && *elem != '-')  /* Take GOST R 34.10-2001/12 key. */
         {
-          char tmp[2];
-          char tmp2[0x81];
-          int i;
+          unsigned char *tmp = _ksba_xmalloc (len + 1);
+          if (!tmp)
+            {
+              xfree (parm_oid);
+              return gpg_error (GPG_ERR_ENOMEM);
+            }
 
           put_stringbuf (&sb, "(");
-          tmp[0] = 'q'; tmp[1] = 0;
-          put_stringbuf_sexp (&sb, tmp);
-          tmp2[0] = 0x04;
-          for (i = 0; i < derlen/2; i++)
-            tmp2[derlen/2 - i] = der[i];
-          for (i = 0; i < derlen/2; i++)
-            tmp2[derlen - i] = der[derlen/2 + i];
-          put_stringbuf_mem_sexp (&sb, tmp2, derlen + 1);
+          put_stringbuf_sexp (&sb, "q");
+          tmp[0] = 0x04;
+          _ksba_flip_ecc_key (der, len, tmp + 1);
+          put_stringbuf_mem_sexp (&sb, tmp, len + 1);
+          xfree (tmp);
+          put_stringbuf (&sb, ")");
+        }
+
+      if ('-' == *elem)
+        {
+          lastseqlen = len;
+        }
+      else
+        {
           der += len;
           derlen -= len;
-          put_stringbuf (&sb, ")");
+          lastseqlen -= len;
         }
     }
   put_stringbuf (&sb, ")");
