@@ -258,3 +258,14 @@ _ksba_ascii_memcasecmp (const void *a_arg, const void *b_arg, size_t n)
     }
   return 0;
 }
+
+void
+_ksba_flip_ecc_key (const unsigned char *key, size_t len,
+					unsigned char *r_key)
+{
+  int i;
+  for (i = 0; i < len/2; i++)
+	r_key[len/2 - i - 1] = key[i];
+  for (i = 0; i < len/2; i++)
+	r_key[len - i - 1] = key[len/2 + i];
+}

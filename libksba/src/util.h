@@ -117,4 +117,8 @@ int _ksba_ascii_memcasecmp (const void *a_arg, const void *b_arg, size_t n);
                      *(p) <= 'F'? (*(p)-'A'+10):(*(p)-'a'+10))
 #define xtoi_2(p)   ((xtoi_1(p) * 16) + xtoi_1((p)+1))
 
+void
+_ksba_flip_ecc_key (const unsigned char *key, size_t len,
+					unsigned char *r_key);
+
 #endif /* UTIL_H */
