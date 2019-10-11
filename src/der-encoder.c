@@ -38,6 +38,7 @@
 #include "ksba.h"
 #include "asn1-func.h"
 #include "ber-help.h"
+#include "keyinfo.h"
 #include "der-encoder.h"
 #include "convert.h"
 
@@ -364,6 +365,27 @@ _ksba_der_store_oid (AsnNode node, const char *oid)
       err = store_value (node, buf, len);
       xfree (buf);
       return err;
+    }
+  else
+    return gpg_error (GPG_ERR_INV_VALUE);
+}
+
+
+gpg_error_t
+_ksba_der_store_bit_string (AsnNode node, const char *buf, size_t bitlen)
+{
+  if (node->type == TYPE_ANY)
+    node->type = TYPE_BIT_STRING;
+
+  if (node->type == TYPE_BIT_STRING)
+    {
+	  unsigned char *bbuf = xtrymalloc (bitlen/8 + 1);
+	  if (!bbuf) return gpg_error (GPG_ERR_ENOMEM);
+	  memcpy (bbuf + 1, buf, bitlen / 8);
+	  *bbuf = bitlen % 8;
+      gpg_error_t err = store_value (node, bbuf, bitlen/8 + 1);
+	  xfree (bbuf);
+	  return err;
     }
   else
     return gpg_error (GPG_ERR_INV_VALUE);
