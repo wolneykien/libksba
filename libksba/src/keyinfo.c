@@ -134,6 +134,21 @@ static const struct algo_table_s privkey_algo_table[] = {
     "\x2a\x86\x48\xce\x3d\x02\x01", 7,
     1, PKALGO_ECC, "ecc", "-_d", "\x30\x02\x04", "-_-_p-ab_gn", "\x30\x02\x30\x06\x02\x30\x04\x04\x03\x04\x02" },
 
+  { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
+    "1.2.643.2.2.19",
+    "\x2a\x85\x03\x02\x02\x13", 6,
+    1, PKALGO_GOST, "gost", "d", "\x02", "-CD", "\x30\x06\x06" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
+    "1.2.643.7.1.1.1.1",
+    "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
+    1, PKALGO_GOST, "gost", "d", "\x02", "-CD", "\x30\x06\x06" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
+    "1.2.643.7.1.1.1.2",
+    "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
+    1, PKALGO_GOST, "gost", "d", "\x02", "-CD", "\x30\x06\x06" },
+
   {NULL}
 };
 
