@@ -78,27 +78,27 @@ static const struct algo_table_s pk_algo_table[] = {
   { /* iso.member-body.us.rsadsi.pkcs.pkcs-1.1 */
     "1.2.840.113549.1.1.1", /* rsaEncryption (RSAES-PKCA1-v1.5) */
     "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01", 9,
-    1, PKALGO_RSA, "rsa", "-ne", "\x30\x02\x02" },
+    1, PKALGO_RSA, "rsa", "*-ne", "\x30\x02\x02" },
 
   { /* iso.member-body.us.rsadsi.pkcs.pkcs-1.7 */
     "1.2.840.113549.1.1.7", /* RSAES-OAEP */
     "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x07", 9,
-    0, PKALGO_RSA, "rsa", "-ne", "\x30\x02\x02"}, /* (patent problems) */
+    0, PKALGO_RSA, "rsa", "*-ne", "\x30\x02\x02"}, /* (patent problems) */
 
   { /* */
     "2.5.8.1.1", /* rsa (ambiguous due to missing padding rules)*/
     "\x55\x08\x01\x01", 4,
-    1, PKALGO_RSA, "ambiguous-rsa", "-ne", "\x30\x02\x02" },
+    1, PKALGO_RSA, "ambiguous-rsa", "*-ne", "\x30\x02\x02" },
 
   { /* iso.member-body.us.x9-57.x9cm.1 */
     "1.2.840.10040.4.1", /*  dsa */
     "\x2a\x86\x48\xce\x38\x04\x01", 7,
-    1, PKALGO_DSA, "dsa", "y", "\x02", "-pqg", "\x30\x02\x02\x02" },
+    1, PKALGO_DSA, "dsa", "*y", "\x02", "-pqg", "\x30\x02\x02\x02" },
 
   { /* iso.member-body.us.ansi-x9-62.2.1 */
     "1.2.840.10045.2.1", /*  ecPublicKey */
     "\x2a\x86\x48\xce\x3d\x02\x01", 7,
-    1, PKALGO_ECC, "ecc", "q", "\x80" },
+    1, PKALGO_ECC, "ecc", "*q", "\x80" },
 
   { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
     "1.2.643.2.2.19",
@@ -122,72 +122,72 @@ static const struct algo_table_s sig_algo_table[] = {
   {  /* iso.member-body.us.rsadsi.pkcs.pkcs-1.5 */
     "1.2.840.113549.1.1.5", /* sha1WithRSAEncryption */
     "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x05", 9,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "sha1" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "sha1" },
   { /* iso.member-body.us.rsadsi.pkcs.pkcs-1.4 */
     "1.2.840.113549.1.1.4", /* md5WithRSAEncryption */
     "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x04", 9,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "md5" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "md5" },
   { /* iso.member-body.us.rsadsi.pkcs.pkcs-1.2 */
     "1.2.840.113549.1.1.2", /* md2WithRSAEncryption */
     "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x02", 9,
-    0, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "md2" },
+    0, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "md2" },
   { /* iso.member-body.us.x9-57.x9cm.1 */
     "1.2.840.10040.4.3", /* dsa */
     "\x2a\x86\x48\xce\x38\x04\x01", 7,
-    1, PKALGO_DSA, "dsa", "-rs", "\x30\x02\x02" },
+    1, PKALGO_DSA, "dsa", "*-rs", "\x30\x02\x02" },
   { /* iso.member-body.us.x9-57.x9cm.3 */
     "1.2.840.10040.4.3", /*  dsaWithSha1 */
     "\x2a\x86\x48\xce\x38\x04\x03", 7,
-    1, PKALGO_DSA, "dsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha1" },
+    1, PKALGO_DSA, "dsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha1" },
   { /* Teletrust signature algorithm.  */
     "1.3.36.8.5.1.2.2", /* dsaWithRIPEMD160 */
     "\x2b\x24\x08\x05\x01\x02\x02", 7,
-    1, PKALGO_DSA, "dsa", "-rs", "\x30\x02\x02", NULL, NULL, "rmd160" },
+    1, PKALGO_DSA, "dsa", "*-rs", "\x30\x02\x02", NULL, NULL, "rmd160" },
   { /* NIST Algorithm */
     "2.16.840.1.101.3.4.3.1", /* dsaWithSha224 */
     "\x06\x09\x60\x86\x48\x01\x65\x03\x04\x03\x01", 11,
-    1, PKALGO_DSA, "dsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha224" },
+    1, PKALGO_DSA, "dsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha224" },
   { /* NIST Algorithm (the draft also used .1 but we better use .2) */
     "2.16.840.1.101.3.4.3.2", /* dsaWithSha256 */
     "\x06\x09\x60\x86\x48\x01\x65\x03\x04\x03\x01", 11,
-    1, PKALGO_DSA, "dsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha256" },
+    1, PKALGO_DSA, "dsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha256" },
 
   { /* iso.member-body.us.ansi-x9-62.signatures.ecdsa-with-sha1 */
     "1.2.840.10045.4.1", /*  ecdsa */
     "\x2a\x86\x48\xce\x3d\x04\x01", 7,
-    1, PKALGO_ECC, "ecdsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha1" },
+    1, PKALGO_ECC, "ecdsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha1" },
 
   { /* iso.member-body.us.ansi-x9-62.signatures.ecdsa-with-specified */
     "1.2.840.10045.4.3",
     "\x2a\x86\x48\xce\x3d\x04\x03", 7,
-    1, PKALGO_ECC, "ecdsa", "-rs", "\x30\x02\x02", NULL, NULL, NULL },
+    1, PKALGO_ECC, "ecdsa", "*-rs", "\x30\x02\x02", NULL, NULL, NULL },
   /* The digest algorithm is given by the parameter.  */
 
 
   { /* iso.member-body.us.ansi-x9-62.signatures.ecdsa-with-sha224 */
     "1.2.840.10045.4.3.1",
     "\x2a\x86\x48\xce\x3d\x04\x03\x01", 8,
-    1, PKALGO_ECC, "ecdsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha224" },
+    1, PKALGO_ECC, "ecdsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha224" },
 
   { /* iso.member-body.us.ansi-x9-62.signatures.ecdsa-with-sha256 */
     "1.2.840.10045.4.3.2",
     "\x2a\x86\x48\xce\x3d\x04\x03\x02", 8,
-    1, PKALGO_ECC, "ecdsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha256" },
+    1, PKALGO_ECC, "ecdsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha256" },
 
   { /* iso.member-body.us.ansi-x9-62.signatures.ecdsa-with-sha384 */
     "1.2.840.10045.4.3.3",
     "\x2a\x86\x48\xce\x3d\x04\x03\x03", 8,
-    1, PKALGO_ECC, "ecdsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha384" },
+    1, PKALGO_ECC, "ecdsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha384" },
 
   { /* iso.member-body.us.ansi-x9-62.signatures.ecdsa-with-sha512 */
     "1.2.840.10045.4.3.4",
     "\x2a\x86\x48\xce\x3d\x04\x03\x04", 8,
-    1, PKALGO_ECC, "ecdsa", "-rs", "\x30\x02\x02", NULL, NULL, "sha512" },
+    1, PKALGO_ECC, "ecdsa", "*-rs", "\x30\x02\x02", NULL, NULL, "sha512" },
 
   { /* iso.member-body.us.rsadsi.pkcs.pkcs-1.1 */
     "1.2.840.113549.1.1.1", /* rsaEncryption used without hash algo*/
     "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01", 9,
-    1, PKALGO_RSA, "rsa", "s", "\x82" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82" },
   { /* from NIST's OIW - actually belongs in a pure hash table */
     "1.3.14.3.2.26",  /* sha1 */
     "\x2B\x0E\x03\x02\x1A", 5,
@@ -196,34 +196,34 @@ static const struct algo_table_s sig_algo_table[] = {
   { /* As used by telesec cards */
     "1.3.36.3.3.1.2",  /* rsaSignatureWithripemd160 */
     "\x2b\x24\x03\x03\x01\x02", 6,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "rmd160" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "rmd160" },
 
   { /* from NIST's OIW - used by TU Darmstadt */
     "1.3.14.3.2.29",  /* sha-1WithRSAEncryption */
     "\x2B\x0E\x03\x02\x1D", 5,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "sha1" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "sha1" },
 
   { /* from PKCS#1  */
     "1.2.840.113549.1.1.11", /* sha256WithRSAEncryption */
     "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x0b", 9,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "sha256" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "sha256" },
 
   { /* from PKCS#1  */
     "1.2.840.113549.1.1.12", /* sha384WithRSAEncryption */
     "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x0c", 9,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "sha384" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "sha384" },
 
   { /* from PKCS#1  */
     "1.2.840.113549.1.1.13", /* sha512WithRSAEncryption */
     "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x0d", 9,
-    1, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "sha512" },
+    1, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "sha512" },
 
   { /* TeleTrust signature scheme with RSA signature and DSI according
        to ISO/IEC 9796-2 with random number and RIPEMD-160.  I am not
        sure for what this is good; thus disabled. */
     "1.3.36.3.4.3.2.2",     /* sigS_ISO9796-2rndWithrsa_ripemd160 */
     "\x2B\x24\x03\x04\x03\x02\x02", 7,
-    0, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "rmd160" },
+    0, PKALGO_RSA, "rsa", "*s", "\x82", NULL, NULL, "rmd160" },
 
   {  /* iso.member-body.ru.rans.cryptopro.3 */
     "1.2.643.2.2.3", /* gostR3411-94-with-gostR3410-2001 */
@@ -263,7 +263,7 @@ static const struct algo_table_s enc_algo_table[] = {
   { /* iso.member-body.us.rsadsi.pkcs.pkcs-1.1 */
     "1.2.840.113549.1.1.1", /* rsaEncryption (RSAES-PKCA1-v1.5) */
     "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01", 9,
-    1, PKALGO_RSA, "rsa", "a", "\x82" },
+    1, PKALGO_RSA, "rsa", "*a", "\x82" },
 
   /* The GOST encryption paramsters are:
        * k -- wrapped key;
@@ -275,15 +275,15 @@ static const struct algo_table_s enc_algo_table[] = {
   { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
     "1.2.643.2.2.19",
     "\x2a\x85\x03\x02\x02\x13", 6,
-    1, PKALGO_GOST, "gost", "--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
     "1.2.643.7.1.1.1.1",
     "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
-    1, PKALGO_GOST, "gost", "--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
     "1.2.643.7.1.1.1.2",
     "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
-    1, PKALGO_GOST, "gost", "--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
   {NULL}
 };
 
@@ -421,17 +421,15 @@ get_ecc_curve_oid (const unsigned char *buf, size_t buflen, size_t *r_oidlen)
 
 
 
-/* Return the OFF and the LEN of algorithm within DER.  Do some checks
-   and return the number of bytes read in r_nread, adding this to der
-   does point into the BIT STRING.
-
-   mode 0: just get the algorithm identifier. FIXME: should be able to
-           handle BER Encoding.
-   mode 1: as described.
+/* Pre-parses the ASN.1 AlgorithmIdentifier.
+ *
+ * Returns the algorithm OID offset and length in r_pos and r_len.
+ * Returns the algorithm paramters offset, length and type in r_parm_pos,
+ * r_param_len and r_param_type.
  */
 static gpg_error_t
-get_algorithm (int mode, const unsigned char *der, size_t derlen,
-               size_t *r_nread, size_t *r_pos, size_t *r_len, int *r_bitstr,
+get_algorithm (const unsigned char *der, size_t derlen,
+               size_t *r_nread, size_t *r_pos, size_t *r_len,
                size_t *r_parm_pos, size_t *r_parm_len, int *r_parm_type)
 {
   int c;
@@ -439,7 +437,6 @@ get_algorithm (int mode, const unsigned char *der, size_t derlen,
   const unsigned char *startseq;
   unsigned long seqlen, len;
 
-  *r_bitstr = 0;
   if (r_parm_pos)
     *r_parm_pos = 0;
   if (r_parm_len)
@@ -549,22 +546,6 @@ get_algorithm (int mode, const unsigned char *der, size_t derlen,
   if (seqlen)
     return gpg_error (GPG_ERR_INV_KEYINFO);
 
-  if (mode)
-    {
-      /* move forward to the BIT_STR */
-      if (!derlen)
-        return gpg_error (GPG_ERR_INV_KEYINFO);
-      c = *der++; derlen--;
-
-      if (c == 0x03)
-        *r_bitstr = 1; /* BIT STRING */
-      else if (c == 0x04)
-        ; /* OCTECT STRING */
-      else
-        return gpg_error (GPG_ERR_UNEXPECTED_TAG); /* not a BIT STRING */
-      TLV_LENGTH(der);
-    }
-
   *r_nread = der - start;
   return 0;
 }
@@ -584,7 +565,6 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
                                    char **r_parm, size_t *r_parmlen)
 {
   gpg_error_t err;
-  int is_bitstr;
   size_t nread, off, len, off2, len2;
   int parm_type;
 
@@ -593,7 +573,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
   *r_oid = NULL;
   *r_nread = 0;
   off2 = len2 = 0;
-  err = get_algorithm (0, der, derlen, &nread, &off, &len, &is_bitstr,
+  err = get_algorithm (der, derlen, &nread, &off, &len,
                        &off2, &len2, &parm_type);
   if (err)
     return err;
@@ -609,7 +589,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
     {
       xfree (*r_oid);
       *r_oid = NULL;
-      err = get_algorithm (0, der+off2, len2, &nread, &off, &len, &is_bitstr,
+      err = get_algorithm (der+off2, len2, &nread, &off, &len,
                            NULL, NULL, NULL);
       if (err)
         {
@@ -1330,7 +1310,6 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
   int parm_type;
   char *parm_oid = NULL;
   int algoidx;
-  int is_bitstr;
   const unsigned char *parmder = NULL;
   size_t parmderlen = 0;
   const unsigned char *ctrl;
@@ -1368,7 +1347,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
       return gpg_error (GPG_ERR_INV_KEYINFO);
     }
 
-  err = get_algorithm (1, der, derlen, &nread, &off, &len, &is_bitstr,
+  err = get_algorithm (der, derlen, &nread, &off, &len,
                        &parm_off, &parm_len, &parm_type);
   if (err)
     return err;
@@ -1395,17 +1374,6 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
 
   der += nread;
   derlen -= nread;
-
-  if (is_bitstr)
-    { /* Funny: X.509 defines the signature value as a bit string but
-         CMS as an octet string - for ease of implementation we always
-         allow both */
-      if (!derlen)
-        return gpg_error (GPG_ERR_INV_KEYINFO);
-      c = *der++; derlen--;
-      if (c)
-        fprintf (stderr, "warning: number of unused bits is not zero\n");
-    }
 
   /* fixme: we should calculate the initial length form the size of the
      sequence, so that we don't neen a realloc later */
@@ -1492,7 +1460,10 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               lastseqlen -= _lastderlen - parmderlen;
             }
 
-          if (is_int && *elem != '-')  /* Take this integer.  */
+          if ('_' == *elem)
+            /* Skip this value */
+            ;
+          else if (is_int && *elem != '-')  /* Take this integer.  */
             {
               char tmp[2];
 
@@ -1547,6 +1518,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
     {
       int is_int = 0;
       int is_oid = 0;
+      int is_bitstr = 0;
 
       while ('?' == *elem)
         {
@@ -1556,6 +1528,34 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               elem++;
               ctrl++;
             }
+        }
+
+      while ('*' == *elem)
+        {
+          if (derlen)
+            {
+              int _bitstr = 0;
+              switch (*der)
+                {
+                case 0x03:
+                  _bitstr = 1;
+                case 0x04:
+                  {
+                    der++; derlen--;
+                    size_t _lastderlen = derlen;
+                    TLV_LENGTH (der);
+                    lastseqlen -= _lastderlen - derlen;
+                    if (_bitstr)
+                      {
+                        if (*der)
+                          fprintf (stderr, "WARNING: Number of unused bits is not zero!\n");
+                        der++; derlen--; lastseqlen--; len--;
+                      }
+                  }
+                  break;
+                }
+            }
+          elem++;
         }
 
       if (!*elem) break;
@@ -1568,7 +1568,6 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           is_int = 1;
           len = derlen;
           lastseqlen = len;
-          is_bitstr = 0;
         }
       else
         {
@@ -1584,8 +1583,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               xfree (parm_oid);
               return gpg_error (GPG_ERR_UNEXPECTED_TAG);
             }
-          is_int = c == 0x02;
-          is_int |= (c == 0x04 && *elem != 'Q');
+          is_int = (c == 0x02 || c == 0x04);
           is_bitstr = c == 0x03;
           is_oid = c == TYPE_OBJECT_ID;
           TLV_LENGTH (der);
@@ -1596,10 +1594,11 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
         {
           if (!derlen)
             return gpg_error (GPG_ERR_INV_KEYINFO);
-          c = *der++; derlen--; lastseqlen--;
-          if (c)
-            fprintf (stderr, "warning: number of unused bits is not zero\n");
-          continue;
+          if (*der)
+            fprintf (stderr, "WARNING: Number of unused bits is not zero!\n");
+          else
+            is_int = 1;
+          der++; derlen--; lastseqlen--; len--;
 		}
       else if (is_int && *elem == 'G' && len%2 == 0)
         {
@@ -1617,8 +1616,11 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           put_stringbuf_mem_sexp (&sb, der, len/2);
           put_stringbuf (&sb, ")");
         }
+      if ('_' == *elem)
+        /* Skip this value */
+        ;
       else if (is_int && *elem != '-')
-        { /* take this integer */
+        { /* Take this integer */
           char tmp[2];
 
           put_stringbuf (&sb, "(");
