@@ -103,17 +103,17 @@ static const struct algo_table_s pk_algo_table[] = {
   { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
     "1.2.643.2.2.19",
     "\x2a\x85\x03\x02\x02\x13", 6,
-    1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
+    1, PKALGO_GOST, "gost", "*q", "\x04", "-CD", "\x30\x06\x06" },
 
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
     "1.2.643.7.1.1.1.1",
     "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
-    1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
+    1, PKALGO_GOST, "gost", "*q", "\x04", "-CD", "\x30\x06\x06" },
 
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
     "1.2.643.7.1.1.1.2",
     "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
-    1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
+    1, PKALGO_GOST, "gost", "*q", "\x04", "-CD", "\x30\x06\x06" },
   {NULL}
 };
 
@@ -228,32 +228,32 @@ static const struct algo_table_s sig_algo_table[] = {
   {  /* iso.member-body.ru.rans.cryptopro.3 */
     "1.2.643.2.2.3", /* gostR3411-94-with-gostR3410-2001 */
     "\x2A\x85\x03\x02\x02\x03", 6,
-    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "gostr3411" },
+    1, PKALGO_GOST, "gost", "*S", "\x82", NULL, NULL, "gostr3411" },
 
   { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
     "1.2.643.2.2.19",
     "\x2a\x85\x03\x02\x02\x13", 6,
-    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "gostr3411" },
+    1, PKALGO_GOST, "gost", "*S", "\x82", NULL, NULL, "gostr3411" },
 
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
     "1.2.643.7.1.1.1.1",
     "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
-    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog256" },
+    1, PKALGO_GOST, "gost", "*S", "\x82", NULL, NULL, "streebog256" },
 
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
     "1.2.643.7.1.1.1.2",
     "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
-    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog512" },
+    1, PKALGO_GOST, "gost", "*S", "\x82", NULL, NULL, "streebog512" },
 
   { /* iso.member-body.ru.reg7.tc26.algorithms.signwithdigest.gost3410-12-256 */
     "1.2.643.7.1.1.3.2",
     "\x2a\x85\x03\x07\x01\x01\x03\x02", 8,
-    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog256" },
+    1, PKALGO_GOST, "gost", "*S", "\x82", NULL, NULL, "streebog256" },
 
   { /* iso.member-body.ru.reg7.tc26.algorithms.signwithdigest.gost3410-12-512 */
     "1.2.643.7.1.1.3.3",
     "\x2a\x85\x03\x07\x01\x01\x03\x03", 8,
-    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog512" },
+    1, PKALGO_GOST, "gost", "*S", "\x82", NULL, NULL, "streebog512" },
 
 
   {NULL}
@@ -269,21 +269,21 @@ static const struct algo_table_s enc_algo_table[] = {
        * k -- wrapped key;
        * m -- MAC;
        * c, d / C, D -- curve and digest OIDs;
-       * Q -- ephemeral public key;
+       * q -- ephemeral public key;
        * u -- UKM.
   */
   { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
     "1.2.643.2.2.19",
     "\x2a\x85\x03\x02\x02\x13", 6,
-    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" },
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
     "1.2.643.7.1.1.1.1",
     "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
-    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" },
   { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
     "1.2.643.7.1.1.1.2",
     "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
-    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-Qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" }, // FIXME: names
+    1, PKALGO_GOST, "gost", "*--km-b--p-C?D-qu", "\x30\x30\x04\x04\xa0\x06\xa0\x30\x06\x30\x06\x06\x03\x04\x04", "-C?D", "\x30\x06\x06" },
   {NULL}
 };
 
@@ -1600,40 +1600,77 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
             is_int = 1;
           der++; derlen--; lastseqlen--; len--;
 		}
-      else if (is_int && *elem == 'G' && len%2 == 0)
-        {
-          char tmp[2];
 
-          put_stringbuf (&sb, "(");
-          tmp[0] = 'r', tmp[1] = 0;
-          put_stringbuf_sexp (&sb, tmp);
-          put_stringbuf_mem_sexp (&sb, der + len/2, len/2);
-          put_stringbuf (&sb, ")");
-
-          put_stringbuf (&sb, "(");
-          tmp[0] = 's', tmp[1] = 0;
-          put_stringbuf_sexp (&sb, tmp);
-          put_stringbuf_mem_sexp (&sb, der, len/2);
-          put_stringbuf (&sb, ")");
-        }
       if ('_' == *elem)
         /* Skip this value */
         ;
       else if (is_int && *elem != '-')
         { /* Take this integer */
           char tmp[2];
+          int default_sexp = 1;
 
-          put_stringbuf (&sb, "(");
-          tmp[0] = *elem; tmp[1] = 0;
-          put_stringbuf_sexp (&sb, tmp);
+          if (PKALGO_GOST == algo_table[algoidx].pkalgo)
+            {
+              switch (*elem)
+                {
+                case 'u':
+                  /* UKM -- reversed */
+                  put_stringbuf (&sb, "(");
+                  tmp[0] = *elem; tmp[1] = 0;
+                  put_stringbuf_sexp (&sb, tmp);
+                  put_stringbuf_mem_sexp_rs (&sb, der, len);
+                  put_stringbuf (&sb, ")");
+                  default_sexp = 0;
+                  break;
+                case 'q':
+                  {
+                    /* GOST R 34.10-2001/12 key -- no 0x04 header, flipped. */
+                    put_stringbuf (&sb, "(");
+                    tmp[0] = *elem; tmp[1] = 0;
+                    put_stringbuf_sexp (&sb, tmp);
 
-          if (PKALGO_GOST == algo_table[algoidx].pkalgo
-              && 'u' == *elem)
-            /* UKM -- reversed */
-            put_stringbuf_mem_sexp_rs (&sb, der, len);
-          else
-            put_stringbuf_mem_sexp (&sb, der, len);
-          put_stringbuf (&sb, ")");
+                    unsigned char *xytmp = _ksba_xmalloc (len + 1);
+                    if (!xytmp)
+                      {
+                        xfree (parm_oid);
+                        return gpg_error (GPG_ERR_ENOMEM);
+                      }
+
+                    xytmp[0] = 0x04;
+                    _ksba_flip_ecc_key (der, len, xytmp + 1);
+                    put_stringbuf_mem_sexp (&sb, xytmp, len + 1);
+                    xfree (xytmp);
+
+                    put_stringbuf (&sb, ")");
+                  }
+                  default_sexp = 0;
+                  break;
+                case 'S':
+                  put_stringbuf (&sb, "(");
+                  tmp[0] = 'r', tmp[1] = 0;
+                  put_stringbuf_sexp (&sb, tmp);
+                  put_stringbuf_mem_sexp (&sb, der + len/2, len/2);
+                  put_stringbuf (&sb, ")");
+
+                  put_stringbuf (&sb, "(");
+                  tmp[0] = 's', tmp[1] = 0;
+                  put_stringbuf_sexp (&sb, tmp);
+                  put_stringbuf_mem_sexp (&sb, der, len/2);
+                  put_stringbuf (&sb, ")");
+
+                  default_sexp = 0;
+                  break;
+                }
+            }
+
+          if (default_sexp)
+            {
+              put_stringbuf (&sb, "(");
+              tmp[0] = *elem; tmp[1] = 0;
+              put_stringbuf_sexp (&sb, tmp);
+              put_stringbuf_mem_sexp (&sb, der, len);
+              put_stringbuf (&sb, ")");
+            }
         }
       else if (is_oid && *elem != '-')  /* Take this OID.  */
         {
@@ -1655,23 +1692,6 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               put_stringbuf_sexp (&sb, tmp);
             }
           put_stringbuf_sexp (&sb, parm_oid);
-          put_stringbuf (&sb, ")");
-        }
-      else if (PKALGO_GOST == algo_table[algoidx].pkalgo && *elem != '-')  /* Take GOST R 34.10-2001/12 key. */
-        {
-          unsigned char *tmp = _ksba_xmalloc (len + 1);
-          if (!tmp)
-            {
-              xfree (parm_oid);
-              return gpg_error (GPG_ERR_ENOMEM);
-            }
-
-          put_stringbuf (&sb, "(");
-          put_stringbuf_sexp (&sb, "q");
-          tmp[0] = 0x04;
-          _ksba_flip_ecc_key (der, len, tmp + 1);
-          put_stringbuf_mem_sexp (&sb, tmp, len + 1);
-          xfree (tmp);
           put_stringbuf (&sb, ")");
         }
 
