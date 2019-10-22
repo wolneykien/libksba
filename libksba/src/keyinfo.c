@@ -51,7 +51,8 @@ typedef enum
   {
     PKALGO_RSA,
     PKALGO_DSA,
-    PKALGO_ECC
+    PKALGO_ECC,
+    PKALGO_GOST
   }
 pkalgo_t;
 
@@ -98,6 +99,21 @@ static const struct algo_table_s pk_algo_table[] = {
     "1.2.840.10045.2.1", /*  ecPublicKey */
     "\x2a\x86\x48\xce\x3d\x02\x01", 7,
     1, PKALGO_ECC, "ecc", "q", "\x80" },
+
+  { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
+    "1.2.643.2.2.19",
+    "\x2a\x85\x03\x02\x02\x13", 6,
+    1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
+    "1.2.643.7.1.1.1.1",
+    "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
+    1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
+    "1.2.643.7.1.1.1.2",
+    "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
+    1, PKALGO_GOST, "gost", "Q", "\x04", "-CD", "\x30\x06\x06" },
 
   {NULL}
 };
@@ -209,6 +225,37 @@ static const struct algo_table_s sig_algo_table[] = {
     "1.3.36.3.4.3.2.2",     /* sigS_ISO9796-2rndWithrsa_ripemd160 */
     "\x2B\x24\x03\x04\x03\x02\x02", 7,
     0, PKALGO_RSA, "rsa", "s", "\x82", NULL, NULL, "rmd160" },
+
+  {  /* iso.member-body.ru.rans.cryptopro.3 */
+    "1.2.643.2.2.3", /* gostR3411-94-with-gostR3410-2001 */
+    "\x2A\x85\x03\x02\x02\x03", 6,
+    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "gostr3411" },
+
+  { /* iso.member-body.ru.rans.cryptopro.gostR3410-2001 */
+    "1.2.643.2.2.19",
+    "\x2a\x85\x03\x02\x02\x13", 6,
+    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "gostr3411" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-256 */
+    "1.2.643.7.1.1.1.1",
+    "\x2a\x85\x03\x07\x01\x01\x01\x01", 8,
+    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog256" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.sign.tc26-gost3410-12-512 */
+    "1.2.643.7.1.1.1.2",
+    "\x2a\x85\x03\x07\x01\x01\x01\x02", 8,
+    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog512" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.signwithdigest.gost3410-12-256 */
+    "1.2.643.7.1.1.3.2",
+    "\x2a\x85\x03\x07\x01\x01\x03\x02", 8,
+    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog256" },
+
+  { /* iso.member-body.ru.reg7.tc26.algorithms.signwithdigest.gost3410-12-512 */
+    "1.2.643.7.1.1.3.3",
+    "\x2a\x85\x03\x07\x01\x01\x03\x03", 8,
+    1, PKALGO_GOST, "gost", "G", "\x80", NULL, NULL, "streebog512" },
+
 
   {NULL}
 };
@@ -736,6 +783,8 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
   int oidlen;
   unsigned char *curve_oid = NULL;
   size_t curve_oidlen;
+  unsigned char *digest_oid = NULL;
+  size_t digest_oidlen;
   pkalgo_t pkalgo;
   int i;
   struct {
@@ -784,6 +833,8 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
   if (!n || *s != ':')
     return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
   s++;
+  // FIXME: we should select different GOST pk entries
+  // depending on the curve & digest
   oid = oid_from_buffer (s, n, &oidlen, &pkalgo, mode);
   if (!oid)
     return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
@@ -835,6 +886,7 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
     case PKALGO_RSA: parmdesc = mode ? "" : "ne"; break;
     case PKALGO_DSA: parmdesc = mode ? "" : "y" ; algoparmdesc = "pqg"; break;
     case PKALGO_ECC: parmdesc = mode ? "C" : "Cq"; break;
+    case PKALGO_GOST: parmdesc = mode ? "CD" : "CDq"; break;
     default: return gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
     }
 
@@ -848,6 +900,13 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
             {
             case 'C': /* Magic value for "curve".  */
               if (parm[i].namelen == 5 && !memcmp (parm[i].name, "curve", 5))
+                {
+                  idxtbl[idxtbllen++] = i;
+                  i = parmidx; /* Break inner loop.  */
+                }
+              break;
+            case 'D': /* Magic value for "digest".  */
+              if (parm[i].namelen == 6 && !memcmp (parm[i].name, "digest", 6))
                 {
                   idxtbl[idxtbllen++] = i;
                   i = parmidx; /* Break inner loop.  */
@@ -873,6 +932,30 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
                                      &curve_oidlen);
       if (!curve_oid)
         return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    }
+
+  if (pkalgo == PKALGO_GOST)
+    {
+      curve_oid = get_ecc_curve_oid (parm[idxtbl[0]].value,
+                                     parm[idxtbl[0]].valuelen,
+                                     &curve_oidlen);
+      if (!curve_oid)
+        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+
+#if 0
+      digest_oid = get_gost_digest_oid (parm[idxtbl[1]].value,
+                                     parm[idxtbl[1]].valuelen,
+                                     &digest_oidlen);
+      if (!digest_oid)
+        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+#else
+
+      if (_ksba_oid_from_buf (parm[idxtbl[1]].value,
+                              parm[idxtbl[1]].valuelen,
+                              &digest_oid,
+                              &digest_oidlen))
+        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+#endif
     }
 
 
@@ -908,6 +991,33 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
             goto leave;
 
         }
+  else if (pkalgo == PKALGO_GOST)
+    {
+      int halflen = parm[idxtbl[2]].valuelen/2;
+      char tmp[0x80];
+      n = 1; /* # of unused bits.  */
+      n += _ksba_ber_count_tl (TYPE_OCTET_STRING, CLASS_UNIVERSAL, 0,
+                               parm[idxtbl[2]].valuelen);
+      n += parm[idxtbl[2]].valuelen - 1;
+
+      /* Write the bit string header and the number of unused bits. */
+      err = _ksba_ber_write_tl (writer, TYPE_BIT_STRING, CLASS_UNIVERSAL, 0,
+                                n);
+      if (!err)
+        err = ksba_writer_write (writer, "", 1);
+      if (err)
+        goto leave;
+
+      for (n = 0; n < halflen; n++)
+        tmp[halflen-1-n] = parm[idxtbl[2]].value[1+n];
+      for (n = 0; n < halflen; n++)
+        tmp[halflen + halflen-1-n] = parm[idxtbl[2]].value[1 + halflen + n];
+      err  = _ksba_ber_write_tl (writer, TYPE_OCTET_STRING, CLASS_UNIVERSAL, 0,
+                                 parm[idxtbl[2]].valuelen - 1);
+      if (!err)
+        err = ksba_writer_write (writer, tmp,
+                                 parm[idxtbl[2]].valuelen - 1);
+    }
       else /* RSA and DSA */
         {
           /* Calculate the size of the sequence value and the size of the
@@ -1038,6 +1148,17 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
                                0, curve_oidlen);
       n += curve_oidlen;
     }
+  else if (pkalgo == PKALGO_GOST)
+    {
+      n += _ksba_ber_count_tl (TYPE_OBJECT_ID, CLASS_UNIVERSAL,
+                               0, curve_oidlen);
+      n += curve_oidlen;
+      n += _ksba_ber_count_tl (TYPE_OBJECT_ID, CLASS_UNIVERSAL,
+                               0, digest_oidlen);
+      n += digest_oidlen;
+      n += _ksba_ber_count_tl (TYPE_SEQUENCE, CLASS_UNIVERSAL,
+                               1, curve_oidlen + digest_oidlen);
+    }
   else if (pkalgo == PKALGO_RSA)
     {
       n += _ksba_ber_count_tl (TYPE_NULL, CLASS_UNIVERSAL, 0, 0);
@@ -1079,6 +1200,34 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
       if (!err)
         err = ksba_writer_write (writer, curve_oid, curve_oidlen);
     }
+  else if (pkalgo == PKALGO_GOST)
+    {
+      n  = _ksba_ber_count_tl (TYPE_OBJECT_ID, CLASS_UNIVERSAL,
+                               0, curve_oidlen);
+      n += curve_oidlen;
+      n += _ksba_ber_count_tl (TYPE_OBJECT_ID, CLASS_UNIVERSAL,
+                               0, digest_oidlen);
+      n += digest_oidlen;
+
+      err = _ksba_ber_write_tl (writer, TYPE_SEQUENCE, CLASS_UNIVERSAL, 1,
+          n);
+      if (err)
+        goto leave;
+
+      err = _ksba_ber_write_tl (writer, TYPE_OBJECT_ID, CLASS_UNIVERSAL,
+                                0, curve_oidlen);
+      if (err)
+        goto leave;
+
+      err = ksba_writer_write (writer, curve_oid, curve_oidlen);
+      if (err)
+        goto leave;
+
+      err = _ksba_ber_write_tl (writer, TYPE_OBJECT_ID, CLASS_UNIVERSAL,
+                                0, digest_oidlen);
+      if (!err)
+        err = ksba_writer_write (writer, digest_oid, digest_oidlen);
+    }
   else if (pkalgo == PKALGO_RSA)
     {
       err = _ksba_ber_write_tl (writer, TYPE_NULL, CLASS_UNIVERSAL, 0, 0);
@@ -1103,6 +1252,7 @@ cryptval_from_sexp (int mode, ksba_const_sexp_t sexp,
   ksba_writer_release (writer);
   xfree (bitstr_value);
   xfree (curve_oid);
+  xfree (digest_oid);
   return err;
 }
 
@@ -1249,11 +1399,13 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
       for (; *elem; ctrl++, elem++)
         {
           int is_int;
+          int is_oid;
 
           if ( (*ctrl & 0x80) && !elem[1] )
             {
               /* Hack to allow reading a raw value.  */
               is_int = 1;
+              is_oid = 0;
               len = parmderlen;
             }
           else
@@ -1270,6 +1422,8 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
                   return gpg_error (GPG_ERR_UNEXPECTED_TAG);
                 }
               is_int = c == 0x02;
+              is_int |= c == 0x04;
+              is_oid = c == TYPE_OBJECT_ID;
               TLV_LENGTH (parmder);
             }
           if (*elem == '_') /* Skip the element.  */
@@ -1289,6 +1443,30 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               parmderlen -= len;
               put_stringbuf (&sb, ")");
             }
+          else if (is_oid && *elem != '-')  /* Take this OID.  */
+            {
+              char tmp[2];
+
+              xfree (parm_oid);
+              parm_oid = ksba_oid_to_str (parmder, len);
+              if (!parm_oid)
+                return gpg_error (GPG_ERR_INV_KEYINFO);
+
+              put_stringbuf (&sb, "(");
+              if (*elem == 'C')
+                put_stringbuf_sexp (&sb, "curve");
+              else if (*elem == 'D')
+                put_stringbuf_sexp (&sb, "digest");
+              else
+                {
+                  tmp[0] = *elem; tmp[1] = 0;
+                  put_stringbuf_sexp (&sb, tmp);
+                }
+              put_stringbuf_sexp (&sb, parm_oid);
+              parmder += len;
+              parmderlen -= len;
+              put_stringbuf (&sb, ")");
+            }
         }
     }
 
@@ -1299,10 +1477,12 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
   for (; *elem; ctrl++, elem++)
     {
       int is_int;
+      int is_gost_key;
 
       if ( (*ctrl & 0x80) && !elem[1] )
         {  /* Hack to allow a raw value */
           is_int = 1;
+          is_gost_key = 0;
           len = derlen;
         }
       else
@@ -1319,10 +1499,32 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
               return gpg_error (GPG_ERR_UNEXPECTED_TAG);
             }
           is_int = c == 0x02;
+          is_int |= (c == 0x04 && *elem != 'Q');
+          is_gost_key = (c == 0x04 && *elem == 'Q');
           TLV_LENGTH (der);
+          is_gost_key &= (len == 0x40)||(len == 0x80);
         }
       if (*elem == '_') /* Skip the element.  */
         {
+          der += len;
+          derlen -= len;
+        }
+      else if (is_int && *elem == 'G' && len%2 == 0)
+        {
+          char tmp[2];
+
+          put_stringbuf (&sb, "(");
+          tmp[0] = 'r', tmp[1] = 0;
+          put_stringbuf_sexp (&sb, tmp);
+          put_stringbuf_mem_sexp (&sb, der + len/2, len/2);
+          put_stringbuf (&sb, ")");
+
+          put_stringbuf (&sb, "(");
+          tmp[0] = 's', tmp[1] = 0;
+          put_stringbuf_sexp (&sb, tmp);
+          put_stringbuf_mem_sexp (&sb, der, len/2);
+          put_stringbuf (&sb, ")");
+
           der += len;
           derlen -= len;
         }
@@ -1334,6 +1536,25 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           tmp[0] = *elem; tmp[1] = 0;
           put_stringbuf_sexp (&sb, tmp);
           put_stringbuf_mem_sexp (&sb, der, len);
+          der += len;
+          derlen -= len;
+          put_stringbuf (&sb, ")");
+        }
+      else if (is_gost_key && *elem != '-')  /* Take GOST R 34.10-2001/12 key. */
+        {
+          char tmp[2];
+          char tmp2[0x81];
+          int i;
+
+          put_stringbuf (&sb, "(");
+          tmp[0] = 'q'; tmp[1] = 0;
+          put_stringbuf_sexp (&sb, tmp);
+          tmp2[0] = 0x04;
+          for (i = 0; i < derlen/2; i++)
+            tmp2[derlen/2 - i] = der[i];
+          for (i = 0; i < derlen/2; i++)
+            tmp2[derlen - i] = der[derlen/2 + i];
+          put_stringbuf_mem_sexp (&sb, tmp2, derlen + 1);
           der += len;
           derlen -= len;
           put_stringbuf (&sb, ")");
