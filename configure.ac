@@ -1,6 +1,6 @@
 # configure.ac - for libksba
 # Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#               2010, 2011, 2012  g10 Code GmbH
+#               2010, 2011, 2012, 2018, 2019  g10 Code GmbH
 #
 # This file is part of KSBA
 #
@@ -18,7 +18,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.61)
+AC_PREREQ([2.61])
 min_automake_version="1.14"
 
 
@@ -29,8 +29,8 @@ min_automake_version="1.14"
 # for the LT versions.
 m4_define([mym4_package],[libksba])
 m4_define([mym4_major], [1])
-m4_define([mym4_minor], [3])
-m4_define([mym4_micro], [6])
+m4_define([mym4_minor], [5])
+m4_define([mym4_micro], [0])
 
 # Below is m4 magic to extract and compute the git revision number,
 # the decimalized short revision number, a beta version string and a
@@ -43,16 +43,16 @@ m4_define([mym4_version],      m4_argn(4, mym4_verslist))
 m4_define([mym4_revision],     m4_argn(7, mym4_verslist))
 m4_define([mym4_revision_dec], m4_argn(8, mym4_verslist))
 m4_esyscmd([echo ]mym4_version[>VERSION])
-AC_INIT([mym4_package],[mym4_version], [http://bugs.gnupg.org])
+AC_INIT([mym4_package],[mym4_version],[https://bugs.gnupg.org])
 
 # LT Version numbers: Remember to change them just *before* a release.
 #   (Interfaces removed:    CURRENT++, AGE=0, REVISION=0)
 #   (Interfaces added:      CURRENT++, AGE++, REVISION=0)
 #   (No interfaces changed:                   REVISION++)
 # Please remember to document interface changes in the NEWS file.
-LIBKSBA_LT_CURRENT=19
-LIBKSBA_LT_AGE=11
-LIBKSBA_LT_REVISION=6
+LIBKSBA_LT_CURRENT=21
+LIBKSBA_LT_AGE=13
+LIBKSBA_LT_REVISION=0
 #-------------------
 # If the API is changed in an incompatible way: increment the next counter.
 KSBA_CONFIG_API_VERSION=1
@@ -61,18 +61,50 @@ KSBA_CONFIG_API_VERSION=1
 NEED_GPG_ERROR_VERSION=1.8
 
 
-PACKAGE=$PACKAGE_NAME
-VERSION=$PACKAGE_VERSION
-
 AC_CONFIG_AUX_DIR([build-aux])
-AC_CONFIG_SRCDIR([src/ksba.h])
+AC_CONFIG_SRCDIR([src/ksba.h.in])
 AM_INIT_AUTOMAKE([serial-tests dist-bzip2 no-dist-gzip])
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 AB_INIT
 
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
+
+# Taken from mpfr-4.0.1, then modified for LDADD_FOR_TESTS_KLUDGE
+dnl Under Linux, make sure that the old dtags are used if LD_LIBRARY_PATH
+dnl is defined. The issue is that with the new dtags, LD_LIBRARY_PATH has
+dnl the precedence over the run path, so that if a compatible MPFR library
+dnl is installed in some directory from $LD_LIBRARY_PATH, then the tested
+dnl MPFR library will be this library instead of the MPFR library from the
+dnl build tree. Other OS with the same issue might be added later.
+dnl
+dnl References:
+dnl   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=859732
+dnl   http://lists.gnu.org/archive/html/libtool/2017-05/msg00000.html
+dnl
+dnl We need to check whether --disable-new-dtags is supported as alternate
+dnl linkers may be used (e.g., with tcc: CC=tcc LD=tcc).
+dnl
+case $host in
+  *-*-linux*)
+    if test -n "$LD_LIBRARY_PATH"; then
+      saved_LDFLAGS="$LDFLAGS"
+      LDADD_FOR_TESTS_KLUDGE="-Wl,--disable-new-dtags"
+      LDFLAGS="$LDFLAGS $LDADD_FOR_TESTS_KLUDGE"
+      AC_MSG_CHECKING(whether --disable-new-dtags is supported by the linker)
+      AC_LINK_IFELSE([AC_LANG_SOURCE([[
+int main (void) { return 0; }
+      ]])],
+      [AC_MSG_RESULT(yes (use it since LD_LIBRARY_PATH is set))],
+      [AC_MSG_RESULT(no)
+       LDADD_FOR_TESTS_KLUDGE=""
+      ])
+      LDFLAGS="$saved_LDFLAGS"
+    fi
+    ;;
+esac
+AC_SUBST([LDADD_FOR_TESTS_KLUDGE])
 
 LT_PREREQ([2.2.6])
 LT_INIT([win32-dll disable-static])
@@ -84,10 +116,11 @@ AM_MAINTAINER_MODE
 AC_SUBST(LIBKSBA_LT_CURRENT)
 AC_SUBST(LIBKSBA_LT_AGE)
 AC_SUBST(LIBKSBA_LT_REVISION)
-AC_SUBST(PACKAGE)
-AC_SUBST(VERSION)
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of this package])
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Version of this package])
+
+VERSION_NUMBER=m4_esyscmd(printf "0x%02x%02x%02x" mym4_major \
+                          mym4_minor mym4_micro)
+AC_SUBST(VERSION_NUMBER)
+
 
 AH_TOP([
 #ifndef _KSBA_CONFIG_H_INCLUDED
@@ -155,8 +188,8 @@ AC_ARG_VAR(CC_FOR_BUILD,[build system C compiler])
 # This is handy for debugging so the compiler doesn't rearrange
 # things and eliminate variables.
 AC_ARG_ENABLE(optimization,
-       AC_HELP_STRING([--disable-optimization],
-		      [disable compiler optimization]),
+       AS_HELP_STRING([--disable-optimization],
+                      [disable compiler optimization]),
                       [if test $enableval = no ; then
                          CFLAGS=`echo $CFLAGS | sed 's/-O[[0-9]]//'`
                        fi])
@@ -252,7 +285,7 @@ case "${host}" in
         ;;
 esac
 AC_ARG_ENABLE([ld-version-script],
-              AC_HELP_STRING([--enable-ld-version-script],
+              AS_HELP_STRING([--enable-ld-version-script],
                              [enable/disable use of linker version script.
                               (default is system dependent)]),
               [have_ld_version_script=$enableval],
@@ -368,7 +401,7 @@ AC_C_BIGENDIAN
 
 AC_CHECK_SIZEOF(unsigned int)
 AC_CHECK_SIZEOF(unsigned long)
-GNUPG_CHECK_TYPEDEF(u32, HAVE_U32_TYPEDEF)
+AC_CHECK_TYPES([u32])
 
 
 # Checks for library functions.
@@ -409,7 +442,7 @@ AC_DEFINE_UNQUOTED(BUILD_REVISION, "$BUILD_REVISION",
                    [GIT commit id revision used to build this package])
 
 AC_ARG_ENABLE([build-timestamp],
-  AC_HELP_STRING([--enable-build-timestamp],
+  AS_HELP_STRING([--enable-build-timestamp],
                  [set an explicit build timestamp for reproducibility.
                   (default is the current time in ISO-8601 format)]),
      [if test "$enableval" = "yes"; then
@@ -423,7 +456,7 @@ AC_DEFINE_UNQUOTED(BUILD_TIMESTAMP, "$BUILD_TIMESTAMP",
                    [The time this package was configured for a build])
 
 build_doc=yes
-AC_ARG_ENABLE([doc], AC_HELP_STRING([--disable-doc],
+AC_ARG_ENABLE([doc], AS_HELP_STRING([--disable-doc],
                                     [do not build the documentation]),
                      build_doc=$enableval, build_doc=yes)
 AM_CONDITIONAL([BUILD_DOC], [test "x$build_doc" != xno])
@@ -434,7 +467,9 @@ Makefile
 m4/Makefile
 gl/Makefile
 src/Makefile
+src/ksba.h
 src/ksba-config
+src/ksba.pc
 src/versioninfo.rc
 tests/Makefile
 doc/Makefile

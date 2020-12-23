@@ -28,6 +28,11 @@
 
 #include "t-common.h"
 
+
+static int quiet;
+static int verbose;
+
+
 void
 dummy_hash_fnc (void *arg, const void *buffer, size_t length)
 {
@@ -64,7 +69,8 @@ one_file (const char *fname)
   char *dn;
   int idx;
 
-  printf ("*** checking `%s' ***\n", fname);
+  if (!quiet)
+    printf ("*** checking `%s' ***\n", fname);
   fp = fopen (fname, "r");
   if (!fp)
     {
@@ -94,9 +100,12 @@ one_file (const char *fname)
     case KSBA_CT_DIGESTED_DATA:  s = "digested data"; break;
     case KSBA_CT_ENCRYPTED_DATA: s = "encrypted data"; break;
     case KSBA_CT_AUTH_DATA:      s = "auth data"; break;
+    case KSBA_CT_SPC_IND_DATA_CTX:s = "spc indirect data context"; break;
+    case KSBA_CT_OPENPGP_KEYBLOCK:s = "openpgp keyblock"; break;
     default:                     s = "unknown"; break;
     }
-  printf ("identified as: %s\n", s);
+  if (!quiet)
+    printf ("identified as: %s\n", s);
 
   err = ksba_cms_new (&cms);
   if (err)
@@ -107,24 +116,33 @@ one_file (const char *fname)
 
   err = ksba_cms_parse (cms, &stopreason);
   fail_if_err2 (fname, err);
-  printf ("stop reason: %d\n", stopreason);
+  if (!quiet)
+    printf ("stop reason: %d\n", stopreason);
 
   s = ksba_cms_get_content_oid (cms, 0);
-  printf ("ContentType: %s\n", s?s:"none");
+  if (!quiet)
+    printf ("ContentType: %s\n", s?s:"none");
 
   err = ksba_cms_parse (cms, &stopreason);
   fail_if_err2 (fname, err);
-  printf ("stop reason: %d\n", stopreason);
+  if (!quiet)
+    printf ("stop reason: %d\n", stopreason);
 
   s = ksba_cms_get_content_oid (cms, 1);
-  printf ("EncapsulatedContentType: %s\n", s?s:"none");
-  printf ("DigestAlgorithms:");
+  if (!quiet)
+    {
+      printf ("EncapsulatedContentType: %s\n", s?s:"none");
+      printf ("DigestAlgorithms:");
+    }
   for (i=0; (algoid = ksba_cms_get_digest_algo_list (cms, i)); i++)
-    printf (" %s", algoid);
-  putchar('\n');
+    if (!quiet)
+      printf (" %s", algoid);
+  if (!quiet)
+    putchar('\n');
 
   if (stopreason == KSBA_SR_NEED_HASH)
-    printf("Detached signature\n");
+    if (!quiet)
+      printf("Detached signature\n");
 
   ksba_cms_set_hash_function (cms, dummy_hash_fnc, NULL);
 
@@ -132,7 +150,8 @@ one_file (const char *fname)
     {
       err = ksba_cms_parse (cms, &stopreason);
       fail_if_err2 (fname, err);
-      printf ("stop reason: %d\n", stopreason);
+      if (!quiet)
+        printf ("stop reason: %d\n", stopreason);
     }
   while (stopreason != KSBA_SR_READY);
 
@@ -146,17 +165,28 @@ one_file (const char *fname)
             break; /* ready */
 
           fail_if_err2 (fname, err);
-          printf ("recipient %d - issuer: ", idx);
-          print_dn (dn);
+          if (!quiet)
+            {
+              printf ("recipient %d - issuer: ", idx);
+              print_dn (dn);
+            }
           ksba_free (dn);
-          putchar ('\n');
-          printf ("recipient %d - serial: ", idx);
-          print_sexp_hex (p);
+          if (!quiet)
+            {
+              putchar ('\n');
+              printf ("recipient %d - serial: ", idx);
+              print_sexp_hex (p);
+              putchar ('\n');
+            }
           ksba_free (p);
-          putchar ('\n');
 
           dn = ksba_cms_get_enc_val (cms, idx);
-          printf ("recipient %d - enc_val %s\n", idx, dn? "found": "missing");
+          if (!quiet)
+            {
+              printf ("recipient %d - enc_val: ", idx);
+              print_sexp (dn);
+              putchar ('\n');
+            }
           ksba_free (dn);
         }
     }
@@ -167,26 +197,37 @@ one_file (const char *fname)
           err = ksba_cms_get_issuer_serial (cms, idx, &dn, &p);
           if (gpg_err_code (err) == GPG_ERR_NO_DATA && !idx)
             {
-              printf ("this is a certs-only message\n");
+              if (!quiet)
+                printf ("this is a certs-only message\n");
               break;
             }
 
           fail_if_err2 (fname, err);
-          printf ("signer %d - issuer: ", idx);
-          print_dn (dn);
+          if (!quiet)
+            {
+              printf ("signer %d - issuer: ", idx);
+              print_dn (dn);
+              putchar ('\n');
+            }
           ksba_free (dn);
-          putchar ('\n');
-          printf ("signer %d - serial: ", idx);
-          print_sexp_hex (p);
+
+          if (!quiet)
+            {
+              printf ("signer %d - serial: ", idx);
+              print_sexp_hex (p);
+              putchar ('\n');
+            }
           ksba_free (p);
-          putchar ('\n');
 
           err = ksba_cms_get_message_digest (cms, idx, &dn, &n);
           fail_if_err2 (fname, err);
-          printf ("signer %d - messageDigest: ", idx);
-          print_hex (dn, n);
+          if (!quiet)
+            {
+              printf ("signer %d - messageDigest: ", idx);
+              print_hex (dn, n);
+              putchar ('\n');
+            }
           ksba_free (dn);
-          putchar ('\n');
 
           err = ksba_cms_get_sigattr_oids (cms, idx,
                                            "1.2.840.113549.1.9.3",&dn);
@@ -199,22 +240,30 @@ one_file (const char *fname)
               for (tmp=dn; *tmp; tmp++)
                 if (*tmp == '\n')
                   *tmp = ' ';
-              printf ("signer %d - content-type: %s\n", idx, dn);
+              if (!quiet)
+                printf ("signer %d - content-type: %s\n", idx, dn);
               ksba_free (dn);
             }
 
           algoid = ksba_cms_get_digest_algo (cms, idx);
-          printf ("signer %d - digest algo: %s\n", idx, algoid?algoid:"?");
+          if (!quiet)
+            printf ("signer %d - digest algo: %s\n", idx, algoid?algoid:"?");
 
           dn = ksba_cms_get_sig_val (cms, idx);
           if (dn)
             {
-              printf ("signer %d - signature: ", idx);
-              print_sexp (dn);
-              putchar ('\n');
+              if (!quiet)
+                {
+                  printf ("signer %d - signature: ", idx);
+                  print_sexp (dn);
+                  putchar ('\n');
+                }
             }
           else
-            printf ("signer %d - signature not found\n", idx);
+            {
+              if (!quiet)
+                printf ("signer %d - signature not found\n", idx);
+            }
           ksba_free (dn);
         }
     }
@@ -231,17 +280,48 @@ one_file (const char *fname)
 int
 main (int argc, char **argv)
 {
-  if (argc > 1)
-    one_file (argv[1]);
+  if (argc)
+    {
+      argc--; argv++;
+    }
+  if (argc && !strcmp (*argv, "--verbose"))
+    {
+      verbose = 1;
+      argc--; argv++;
+    }
+
+  if (argc)
+    {
+      for (; argc; argc--, argv++)
+        one_file (*argv);
+    }
   else
     {
-      char *fname = prepend_srcdir ("detached-sig.cms");
+      static char *testfiles[] =
+        {
+         "samples/detached-sig.cms",
+         "samples/ecdh-sample1.p7m",
+         "samples/ecdsa-sample1.p7s",
+         "samples/rsa-sample1.p7m",
+         "samples/rsa-sample1.p7s",
+         NULL
+        };
+      char *fname;
+      int idx;
 
-      one_file (fname);
-      free(fname);
+      if (!verbose)
+        quiet = 1;
+
+      for (idx=0; testfiles[idx]; idx++)
+        {
+          fname = prepend_srcdir (testfiles[idx]);
+          one_file (fname);
+          free(fname);
+        }
     }
-  /*one_file ("pkcs7-1.ber");*/
-  /*one_file ("root-cert-2.der");  should fail */
+
+  if (!quiet)
+    printf ("*** all checks done\n");
 
   return 0;
 }

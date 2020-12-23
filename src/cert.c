@@ -426,8 +426,11 @@ ksba_cert_hash (ksba_cert_t cert, int what,
  * ksba_cert_get_digest_algo:
  * @cert: Initialized certificate object
  *
- * Figure out the the digest algorithm used for the signature and
- * return its OID
+ * Figure out the digest algorithm used for the signature and return
+ * its OID.  Note that in the case of rsaPSS the returned value is the
+ * OID of rsaPSS (1.2.840.113549.1.1.10) and not the hash algorithm to
+ * use.  The hash algorithm needs to be extracted from the S-expression
+ * returned by ksba_cert_get_sig_val.
  *
  * This function is intended as a helper for the ksba_cert_hash().
  *
@@ -543,8 +546,32 @@ _ksba_cert_get_serial_ptr (ksba_cert_t cert,
   if (!n || n->off == -1)
     return gpg_error (GPG_ERR_NO_VALUE);
 
-  *ptr = cert->image + n->off + n->nhdr;
-  *length = n->len;
+  *ptr = cert->image + n->off;
+  *length = n->nhdr + n->len;
+  return 0;
+}
+
+
+
+/* Return a pointer to the DER encoding of the issuer's DN in CERT in
+   PTR and the length of that object in LENGTH.  */
+gpg_error_t
+_ksba_cert_get_issuer_dn_ptr (ksba_cert_t cert,
+                               unsigned char const **ptr, size_t *length)
+{
+  asn_node_t n;
+
+  if (!cert || !cert->initialized || !ptr || !length)
+    return gpg_error (GPG_ERR_INV_VALUE);
+
+  n = _ksba_asn_find_node (cert->root, "Certificate.tbsCertificate.issuer");
+  if (!n || !n->down)
+    return gpg_error (GPG_ERR_NO_VALUE); /* oops - should be there */
+  n = n->down; /* dereference the choice node */
+  if (n->off == -1)
+    return gpg_error (GPG_ERR_NO_VALUE);
+  *ptr = cert->image + n->off;
+  *length = n->nhdr + n->len;
   return 0;
 }
 
@@ -1999,7 +2026,7 @@ get_simple_octet_string_ext (ksba_cert_t cert, const char *oid,
 /* Return the subjectKeyIdentifier extension as a simple allocated
    S-expression at the address of R_KEYID. 0 is returned on success,
    GPG_ERR_NO_DATA if no such extension is available or any other
-   error code.  If R_CRIT is not passed as NULL, the criticla flag of
+   error code.  If R_CRIT is not passed as NULL, the critical flag of
    this is extension is stored there. */
 gpg_error_t
 ksba_cert_get_subj_key_id (ksba_cert_t cert, int *r_crit, ksba_sexp_t *r_keyid)
@@ -2141,7 +2168,7 @@ get_info_access (ksba_cert_t cert, int idx, int mode,
    R_METHOD and R_LOCATION must be released by the caller unless the
    function returned an error; the function will however make sure
    that R_METHOD and R_LOCATION will point to NULL if the function
-   returns an error.  See RFC 2459, section 4.2.2.1 */
+   returns an error.  See RFC 5280, section 4.2.2.1 */
 gpg_error_t
 ksba_cert_get_authority_info_access (ksba_cert_t cert, int idx,
                                      char **r_method, ksba_name_t *r_location)
@@ -2151,6 +2178,7 @@ ksba_cert_get_authority_info_access (ksba_cert_t cert, int idx,
   return get_info_access (cert, idx, 0, r_method, r_location);
 }
 
+
 /* Return the subjectInfoAccess attributes. IDX should be iterated
    starting from 0 until the function returns GPG_ERR_EOF.  R_METHOD
    returns an allocated string with the OID of one item and R_LOCATION
@@ -2158,7 +2186,7 @@ ksba_cert_get_authority_info_access (ksba_cert_t cert, int idx,
    R_METHOD and R_LOCATION must be released by the caller unless the
    function returned an error; the function will however make sure
    that R_METHOD and R_LOCATION will point to NULL if the function
-   returns an error.  See RFC 2459, section 4.2.2.2 */
+   returns an error.  See RFC 5280, section 4.2.2.2 */
 gpg_error_t
 ksba_cert_get_subject_info_access (ksba_cert_t cert, int idx,
                                    char **r_method, ksba_name_t *r_location)

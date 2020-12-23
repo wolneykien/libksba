@@ -36,6 +36,7 @@
 #include "util.h"
 
 #include "asn1-func.h" /* need some constants */
+#include "convert.h"
 #include "ber-help.h"
 
 /* Fixme: The parser functions should check that primitive types don't
@@ -59,7 +60,7 @@ read_byte (ksba_reader_t reader)
 static int
 premature_eof (struct tag_info *ti)
 {
-  /* Note: We do an strcmp on this string at othyer places. */
+  /* Note: We do an strcmp on this string at other places. */
   ti->err_string = "premature EOF";
   return gpg_error (GPG_ERR_BAD_BER);
 }
@@ -188,10 +189,13 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
   return 0;
 }
 
-/*
-   Parse the buffer at the address BUFFER which of SIZE and return
-   the tag and the length part from the TLV triplet.  Update BUFFER
-   and SIZE on success. */
+
+/* Parse the buffer at the address BUFFER which of SIZE and return the
+ * tag and the length part from the TLV triplet.  Update BUFFER and
+ * SIZE on success.  Note that this function will never return
+ * GPG_ERR_INV_OBJ so that this error code can be used by the parse_foo
+ * functions below to return an error for unexpected tags and the
+ * caller is able to backoff in that case.  */
 gpg_error_t
 _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
                     struct tag_info *ti)
@@ -474,4 +478,235 @@ _ksba_ber_count_tl (unsigned long tag,
     }
 
   return buflen;
+}
+
+
+gpg_error_t
+_ksba_parse_sequence (unsigned char const **buf, size_t *len,
+                      struct tag_info *ti)
+{
+  gpg_error_t err;
+
+  err = _ksba_ber_parse_tl (buf, len, ti);
+  if (err)
+    ;
+  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
+             && ti->is_constructed) )
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (ti->length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+  return err;
+}
+
+
+/* Note that this function returns GPG_ERR_FALSE if the TLV is valid
+ * but the tag does not match.  The caller may thus check for this
+ * error code and compare against other tag values.  */
+gpg_error_t
+_ksba_parse_context_tag (unsigned char const **buf, size_t *len,
+                         struct tag_info *ti, int tag)
+{
+  gpg_error_t err;
+
+  err = _ksba_ber_parse_tl (buf, len, ti);
+  if (err)
+    ;
+  else if (!(ti->class == CLASS_CONTEXT && ti->is_constructed))
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (ti->length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+  else if (ti->tag != tag)
+    err = gpg_error (GPG_ERR_FALSE);
+
+  return err;
+}
+
+
+gpg_error_t
+_ksba_parse_enumerated (unsigned char const **buf, size_t *len,
+                        struct tag_info *ti, size_t maxlen)
+{
+  gpg_error_t err;
+
+  err = _ksba_ber_parse_tl (buf, len, ti);
+  if (err)
+     ;
+  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
+             && !ti->is_constructed) )
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (!ti->length)
+    err = gpg_error (GPG_ERR_TOO_SHORT);
+  else if (maxlen && ti->length > maxlen)
+    err = gpg_error (GPG_ERR_TOO_LARGE);
+  else if (ti->length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+
+  return err;
+}
+
+
+gpg_error_t
+_ksba_parse_integer (unsigned char const **buf, size_t *len,
+                     struct tag_info *ti)
+{
+  gpg_error_t err;
+
+  err = _ksba_ber_parse_tl (buf, len, ti);
+  if (err)
+     ;
+  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
+             && !ti->is_constructed) )
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (!ti->length)
+    err = gpg_error (GPG_ERR_TOO_SHORT);
+  else if (ti->length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+
+  return err;
+}
+
+
+gpg_error_t
+_ksba_parse_octet_string (unsigned char const **buf, size_t *len,
+                          struct tag_info *ti)
+{
+  gpg_error_t err;
+
+  err= _ksba_ber_parse_tl (buf, len, ti);
+  if (err)
+    ;
+  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
+             && !ti->is_constructed) )
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (!ti->length)
+    err = gpg_error (GPG_ERR_TOO_SHORT);
+  else if (ti->length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+
+  return err;
+}
+
+
+/* Note that R_BOOL will only be set if a value has been given. Thus
+   the caller should set it to the default value prior to calling this
+   function.  Obviously no call to parse_skip is required after
+   calling this function. */
+gpg_error_t
+_ksba_parse_optional_boolean (unsigned char const **buf, size_t *len,
+                              int *r_bool)
+{
+  gpg_error_t err;
+  struct tag_info ti;
+
+  err = _ksba_ber_parse_tl (buf, len, &ti);
+  if (err)
+    ;
+  else if (!ti.length)
+    err = gpg_error (GPG_ERR_TOO_SHORT);
+  else if (ti.length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+  else if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN
+           && !ti.is_constructed)
+    {
+      if (ti.length != 1)
+        err = gpg_error (GPG_ERR_BAD_BER);
+      *r_bool = !!**buf;
+      parse_skip (buf, len, &ti);
+    }
+  else
+    { /* Undo the read. */
+      *buf -= ti.nhdr;
+      *len += ti.nhdr;
+    }
+
+  return err;
+}
+
+
+/* Parse an optional Null tag.  Ir R_SEEN is not NULL it is set to
+ * true if a NULL tag was encountered.  */
+gpg_error_t
+_ksba_parse_optional_null (unsigned char const **buf, size_t *len,
+                           int *r_seen)
+{
+  gpg_error_t err;
+  struct tag_info ti;
+
+  if (r_seen)
+    *r_seen = 0;
+  err = _ksba_ber_parse_tl (buf, len, &ti);
+  if (err)
+    ;
+  else if (ti.length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+  else if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_NULL
+           && !ti.is_constructed)
+    {
+      if (ti.length)
+        err = gpg_error (GPG_ERR_BAD_BER);
+      if (r_seen)
+        *r_seen = 1;
+      parse_skip (buf, len, &ti);
+    }
+  else
+    { /* Undo the read. */
+      *buf -= ti.nhdr;
+      *len += ti.nhdr;
+    }
+
+  return err;
+}
+
+
+
+gpg_error_t
+_ksba_parse_object_id_into_str (unsigned char const **buf, size_t *len,
+                                char **oid)
+{
+  struct tag_info ti;
+  gpg_error_t err;
+
+  *oid = NULL;
+  err = _ksba_ber_parse_tl (buf, len, &ti);
+  if (err)
+    ;
+  else if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+                && !ti.is_constructed) )
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (!ti.length)
+    err = gpg_error (GPG_ERR_TOO_SHORT);
+  else if (ti.length > *len)
+    err = gpg_error (GPG_ERR_BAD_BER);
+  else if (!(*oid = ksba_oid_to_str (*buf, ti.length)))
+    err = gpg_error_from_syserror ();
+  else
+    {
+      *buf += ti.length;
+      *len -= ti.length;
+    }
+  return err;
+}
+
+
+gpg_error_t
+_ksba_parse_asntime_into_isotime (unsigned char const **buf, size_t *len,
+                                  ksba_isotime_t isotime)
+{
+  struct tag_info ti;
+  gpg_error_t err;
+
+  err = _ksba_ber_parse_tl (buf, len, &ti);
+  if (err)
+    ;
+  else if ( !(ti.class == CLASS_UNIVERSAL
+              && (ti.tag == TYPE_UTC_TIME || ti.tag == TYPE_GENERALIZED_TIME)
+              && !ti.is_constructed) )
+    err = gpg_error (GPG_ERR_INV_OBJ);
+  else if (ti.length > *len)
+    err = gpg_error (GPG_ERR_INV_BER);
+  else if (!(err = _ksba_asntime_to_iso (*buf, ti.length,
+                                         ti.tag == TYPE_UTC_TIME, isotime)))
+    parse_skip (buf, len, &ti);
+
+  return err;
 }
