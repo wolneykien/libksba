@@ -1984,11 +1984,12 @@ key_algo_to_digest_algo (const char *value, size_t len)
 {
   if (value)
     {
-      if (0 == strncmp (value, "1.2.643.2.2.19", len))
+      /* GOST */
+      if (!strcmp (value, "1.2.643.2.2.19"))
         return "1.2.643.2.2.30.1";
-      else if (0 == strncmp (value, "1.2.643.7.1.1.1.1", len))
+      else if (!strcmp (value, "1.2.643.7.1.1.1.1"))
         return "1.2.643.7.1.1.2.2";
-      else if (0 == strncmp (value, "1.2.643.7.1.1.1.2", len))
+      else if (!strcmp (value, "1.2.643.7.1.1.1.2"))
         return "1.2.643.7.1.1.2.3";
     }
 
@@ -2000,12 +2001,13 @@ digest_algo_to_key_algo (const char *value, size_t len)
 {
   if (value)
     {
-      if (0 == strncmp (value, "1.2.643.2.2.9", len) ||
-          0 == strncmp (value, "1.2.643.2.2.30.1", len))
+      /* GOST */
+      if (!strcmp (value, "1.2.643.2.2.9") ||
+          !strcmp (value, "1.2.643.2.2.30.1"))
         return "1.2.643.2.2.19";
-      else if (0 == strncmp (value, "1.2.643.7.1.1.2.2", len))
+      else if (!strcmp (value, "1.2.643.7.1.1.2.2"))
         return "1.2.643.7.1.1.1.1";
-      else if (0 == strncmp (value, "1.2.643.7.1.1.2.3", len))
+      else if (!strcmp (value, "1.2.643.7.1.1.2.3"))
         return "1.2.643.7.1.1.1.2";
 
       /* ECDSA */
