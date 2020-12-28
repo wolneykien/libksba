@@ -104,10 +104,6 @@ struct sig_val_s {
   char *algo;
   unsigned char *value;  /* Malloced buffer for parameter "s". */
   size_t valuelen;       /* Used length of VALUE.  */
-  struct {
-    unsigned char *r;    /* Malloced buffer for parameter "r". */
-    size_t rlen;         /* Length of R.                       */
-  } ecc;
 };
 
 
