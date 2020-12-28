@@ -1997,7 +1997,7 @@ key_algo_to_digest_algo (const char *value, size_t len)
 }
 
 static const char *
-digest_algo_to_key_algo (const char *value, size_t len)
+digest_algo_to_sig_algo (const char *value, size_t len)
 {
   if (value)
     {
@@ -2172,7 +2172,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
                   algo_oid = curve_oid_to_key_algo (values[3].value, values[3].len,
                                                     values[4].value, values[4].len);
                 else
-                  algo_oid = digest_algo_to_key_algo (values[4].value, values[4].len);
+                  algo_oid = digest_algo_to_sig_algo (values[4].value, values[4].len);
 
                 if (!algo_oid)
                   {
