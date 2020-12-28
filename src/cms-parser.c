@@ -649,7 +649,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
           err = _ksba_ber_read_tl (cms->reader, &ti);
           if (err)
             return err;
-          if (expect_endtag && !ti.class && ti.tag == TYPE_NULL )
+          if (expect_endtag && !ti.class && !ti.tag)
             {
               /* This is an end tag.  Read the next tag but don't fail
                  if this is just an EOF.  */
@@ -710,7 +710,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
           err = _ksba_ber_read_tl (cms->reader, &ti);
           if (err)
             return err;
-          if (expect_endtag && !ti.class && ti.tag == TYPE_NULL )
+          if (expect_endtag && !ti.class && !ti.tag)
             {
               /* This is an end tag.  Read the next tag but don't fail
                  if this is just an EOF.  */
@@ -852,10 +852,16 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
       return gpg_error (GPG_ERR_UNSUPPORTED_CMS_OBJ);
     }
 
-  /* Next one is the SET OF recipientInfos */
+  /* Next one is the SET OF RecipientInfo:
+   * RecipientInfo ::= CHOICE {
+   *     ktri KeyTransRecipientInfo,
+   *     kari [1] KeyAgreeRecipientInfo,
+   *     kekri [2] KEKRecipientInfo
+   * }  */
   if ( !(ti.class == CLASS_UNIVERSAL
          && ti.tag == TYPE_SET && ti.is_constructed))
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
+
 
   vtend = &cms->recp_info;
   if (ti.ndef)
@@ -882,7 +888,7 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
 
           err = create_and_run_decoder
             (cms->reader,
-             "CryptographicMessageSyntax.KeyTransRecipientInfo",
+             "CryptographicMessageSyntax.RecipientInfo",
              BER_DECODER_FLAG_FAST_STOP,
              &vt->root, &vt->image, &vt->imagelen);
           if (err)
@@ -908,8 +914,8 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
 
           err = create_and_run_decoder
             (cms->reader,
-             "CryptographicMessageSyntax.KeyTransRecipientInfo",
-             0,
+             "CryptographicMessageSyntax.RecipientInfo",
+             BER_DECODER_FLAG_FAST_STOP,
              &vt->root, &vt->image, &vt->imagelen);
           if (err)
             {

@@ -27,6 +27,9 @@
 #include "../src/ksba.h"
 #include "t-common.h"
 
+static int quiet;
+static int verbose;
+
 
 static void
 test_0 (void)
@@ -92,9 +95,10 @@ test_1 (void)
       err = ksba_dn_teststr (empty_elements[i], 0, &off, &len);
       if (!err)
         fail ("ksba_dn_teststr returned no error");
-      printf ("string ->%s<-  error at %lu.%lu (%.*s)\n",
-              empty_elements[i], (unsigned long)off, (unsigned long)len,
-              (int)len, empty_elements[i]+off);
+      if (!quiet)
+        printf ("string ->%s<-  error at %lu.%lu (%.*s)\n",
+                empty_elements[i], (unsigned long)off, (unsigned long)len,
+                (int)len, empty_elements[i]+off);
       xfree (buf);
     }
 }
@@ -120,9 +124,10 @@ test_2 (void)
       err = ksba_dn_teststr (invalid_labels[i], 0, &off, &len);
       if (!err)
         fail ("ksba_dn_test_str returned no error");
-      printf ("string ->%s<-  error at %lu.%lu (%.*s)\n",
-              invalid_labels[i], (unsigned long)off, (unsigned long)len,
-              (int)len, invalid_labels[i]+off);
+      if (!quiet)
+        printf ("string ->%s<-  error at %lu.%lu (%.*s)\n",
+                invalid_labels[i], (unsigned long)off, (unsigned long)len,
+                (int)len, invalid_labels[i]+off);
       xfree (buf);
     }
 }
@@ -136,17 +141,30 @@ main (int argc, char **argv)
   unsigned char *buf;
   size_t len;
   gpg_error_t err;
+  char *string;
 
-  if (argc == 2 && !strcmp (argv[1], "--to-str") )
+  if (argc)
+    {
+      argc--; argv++;
+    }
+  if (argc && !strcmp (*argv, "--verbose"))
+    {
+      verbose = 1;
+      argc--; argv++;
+    }
+
+  if (argc == 1 && !strcmp (argv[0], "--to-str") )
     { /* Read the DER encoded DN from stdin write the string to stdout */
       len = fread (inputbuf, 1, sizeof inputbuf, stdin);
       if (!feof (stdin))
         fail ("read error or input too large");
 
-      fail ("not yet implemented");
-
+      err = ksba_dn_der2str (inputbuf, len, &string);
+      fail_if_err (err);
+      fputs (string, stdout);
+      ksba_free (string);
     }
-  else if (argc == 2 && !strcmp (argv[1], "--to-der") )
+  else if (argc == 1 && !strcmp (argv[0], "--to-der") )
     { /* Read the String from stdin write the DER encoding to stdout */
       len = fread (inputbuf, 1, sizeof inputbuf, stdin);
       if (!feof (stdin))
@@ -156,8 +174,10 @@ main (int argc, char **argv)
       fail_if_err (err);
       fwrite (buf, len, 1, stdout);
     }
-  else if (argc == 1)
+  else if (!argc)
     {
+      if (!verbose)
+        quiet = 1;
       test_0 ();
       test_1 ();
       test_2 ();

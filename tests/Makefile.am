@@ -20,33 +20,49 @@
 
 TESTS_ENVIRONMENT =
 
-test_certs = cert_dfn_pca01.der cert_dfn_pca15.der \
-	     cert_g10code_test1.der crl_testpki_testpca.der \
+test_certs = samples/cert_dfn_pca01.der samples/cert_dfn_pca15.der \
+	     samples/cert_g10code_test1.der samples/crl_testpki_testpca.der \
 	     samples/authority.crt samples/betsy.crt samples/bull.crt \
              samples/ov-ocsp-server.crt samples/ov-userrev.crt \
              samples/ov-root-ca-cert.crt samples/ov-serverrev.crt \
 	     samples/ov-user.crt samples/ov-server.crt  \
              samples/ov2-root-ca-cert.crt samples/ov2-ocsp-server.crt \
-             samples/ov2-user.crt samples/ov2-userrev.crt
+             samples/ov2-user.crt samples/ov2-userrev.crt \
+             samples/secp256r1-sha384_cert.crt \
+             samples/secp256r1-sha512_cert.crt \
+             samples/secp384r1-sha512_cert.crt \
+             samples/openssl-secp256r1ca.cert.crt \
+             samples/ed25519-rfc8410.crt \
+             samples/ed25519-ossl-1.crt \
+             samples/ed448-ossl-1.crt
+
 
 test_crls = samples/ov-test-crl.crl
 
 test_keys = samples/ov-server.p12  samples/ov-userrev.p12 \
-             samples/ov-serverrev.p12  samples/ov-user.p12
+            samples/ov-serverrev.p12  samples/ov-user.p12
 
-EXTRA_DIST = $(test_certs) samples/README mkoidtbl.awk detached-sig.cms
+EXTRA_DIST = $(test_certs)  mkoidtbl.awk \
+             samples/README \
+             samples/detached-sig.cms \
+	     samples/rsa-sample1.p7m  samples/rsa-sample1.p7m \
+	     samples/rsa-sample1.p7s  samples/rsa-sample1.p7s \
+	     samples/ecdh-sample1.p7m samples/ecdh-sample1.p7m.asn \
+	     samples/ecdsa-sample1.p7s samples/ecdsa-sample1.p7s.asn
+
 
 BUILT_SOURCES = oidtranstbl.h
 CLEANFILES = oidtranstbl.h
 
-TESTS = cert-basic t-crl-parser t-dnparser t-oid t-reader t-cms-parser
+TESTS = cert-basic t-crl-parser t-dnparser t-oid t-reader t-cms-parser \
+	t-der-builder
 
 AM_CFLAGS = $(GPG_ERROR_CFLAGS) $(COVERAGE_CFLAGS)
 AM_LDFLAGS = -no-install $(COVERAGE_LDFLAGS)
 
 noinst_HEADERS = t-common.h
 noinst_PROGRAMS = $(TESTS) t-ocsp
-LDADD = ../src/libksba.la $(GPG_ERROR_LIBS)
+LDADD = ../src/libksba.la $(GPG_ERROR_LIBS) @LDADD_FOR_TESTS_KLUDGE@
 
 t_ocsp_SOURCES = t-ocsp.c sha1.c
 

@@ -43,6 +43,7 @@
 #include "ber-help.h"
 #include "ber-decoder.h"
 #include "crl.h"
+#include "stringbuf.h"
 
 
 static const char oidstr_crlNumber[] = "2.5.29.20";
@@ -78,101 +79,6 @@ do_hash (ksba_crl_t crl, const void *buffer, size_t length)
 }
 
 #define HASH(a,b) do_hash (crl, (a), (b))
-
-
-
-static  void
-parse_skip (unsigned char const **buf, size_t *len, struct tag_info *ti)
-{
-  if (ti->length)
-    {
-      assert (ti->length <= *len);
-      *len -= ti->length;
-      *buf += ti->length;
-    }
-}
-
-static gpg_error_t
-parse_sequence (unsigned char const **buf, size_t *len, struct tag_info *ti)
-{
-  gpg_error_t err;
-
-  err = _ksba_ber_parse_tl (buf, len, ti);
-  if (err)
-    ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
-             && ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
-  else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
-  return err;
-}
-
-static gpg_error_t
-parse_integer (unsigned char const **buf, size_t *len, struct tag_info *ti)
-{
-  gpg_error_t err;
-
-  err = _ksba_ber_parse_tl (buf, len, ti);
-  if (err)
-     ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
-             && !ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
-  else if (!ti->length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
-  else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
-
-  return err;
-}
-
-static gpg_error_t
-parse_octet_string (unsigned char const **buf, size_t *len, struct tag_info *ti)
-{
-  gpg_error_t err;
-
-  err= _ksba_ber_parse_tl (buf, len, ti);
-  if (err)
-    ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
-             && !ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
-  else if (!ti->length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
-  else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
-
-  return err;
-}
-
-static gpg_error_t
-parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
-{
-  struct tag_info ti;
-  gpg_error_t err;
-
-  *oid = NULL;
-  err = _ksba_ber_parse_tl (buf, len, &ti);
-  if (err)
-    ;
-  else if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
-                && !ti.is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
-  else if (!ti.length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
-  else if (ti.length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
-  else if (!(*oid = ksba_oid_to_str (*buf, ti.length)))
-    err = gpg_error_from_errno (errno);
-  else
-    {
-      *buf += ti.length;
-      *len -= ti.length;
-    }
-  return err;
-}
-
 
 
 
@@ -633,7 +539,17 @@ ksba_crl_get_item (ksba_crl_t crl, ksba_sexp_t *r_serial,
  *
  * Return the actual signature in a format suitable to be used as
  * input to Libgcrypt's verification function.  The caller must free
- * the returned string.
+ * the returned string.  For a rsaPSS signed CRLs this function may
+ * also be called right after rsaPSS has been detected using
+ * ksba_crl_get_digest_algo and before the the signature value can be
+ * retrieved.  In this case an S-expression of the form
+ *
+ *   (sig-val (hash-algo OID)(salt-length N))
+ *
+ * is returned.  The caller should extract the actual to be used hash
+ * algorithm from that S-expression.  Note that after the actual
+ * signature as been seen, a similar S-expression is returned but in
+ * this case also with the (rsa(s XXX)) list.
  *
  * Return value: NULL or a string with an S-Exp.
  **/
@@ -644,6 +560,28 @@ ksba_crl_get_sig_val (ksba_crl_t crl)
 
   if (!crl)
     return NULL;
+
+  if (!crl->sigval
+      && crl->algo.oid && !strcmp (crl->algo.oid, "1.2.840.113549.1.1.10")
+      && crl->algo.parm && crl->algo.parmlen)
+    {
+      char *pss_hash;
+      unsigned int salt_length;
+      struct stringbuf sb;
+
+      if (_ksba_keyinfo_get_pss_info (crl->algo.parm, crl->algo.parmlen,
+                                      &pss_hash, &salt_length))
+        return NULL;
+
+      init_stringbuf (&sb, 100);
+      put_stringbuf (&sb,"(7:sig-val(5:flags3:pss)(9:hash-algo");
+      put_stringbuf_sexp (&sb, pss_hash);
+      put_stringbuf (&sb, ")(11:salt-length");
+      put_stringbuf_uint (&sb, salt_length);
+      put_stringbuf (&sb, "))");
+
+      return get_stringbuf (&sb);
+    }
 
   if (!crl->sigval)
     return NULL;
@@ -1078,33 +1016,8 @@ parse_to_next_update (ksba_crl_t crl)
   return 0;
 }
 
+
 
-/* Parse an enumerated value.  Note that this code is duplication of
-   the one at ocsp.c.  */
-static gpg_error_t
-parse_enumerated (unsigned char const **buf, size_t *len, struct tag_info *ti,
-                  size_t maxlen)
-{
-  gpg_error_t err;
-
-  err = _ksba_ber_parse_tl (buf, len, ti);
-  if (err)
-     ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
-             && !ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
-  else if (!ti->length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
-  else if (maxlen && ti->length > maxlen)
-    err = gpg_error (GPG_ERR_TOO_LARGE);
-  else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
-
-  return err;
-}
-
-
-
 /* Store an entry extension into the current item. */
 static gpg_error_t
 store_one_entry_extension (ksba_crl_t crl,

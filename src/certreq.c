@@ -42,11 +42,81 @@
 #include "keyinfo.h"
 #include "der-encoder.h"
 #include "ber-help.h"
+#include "sexp-parse.h"
 #include "certreq.h"
 
 static const char oidstr_subjectAltName[] = "2.5.29.17";
 static const char oidstr_extensionReq[] = "1.2.840.113549.1.9.14";
 
+#if 0 /* Set to 1 to use this debug helper.  */
+static void
+log_sexp (const char *text, ksba_const_sexp_t p)
+{
+  int level = 0;
+
+  gpgrt_log_debug ("%s: ", text);
+  if (!p)
+    gpgrt_log_printf ("[none]");
+  else
+    {
+      for (;;)
+        {
+          if (*p == '(')
+            {
+              gpgrt_log_printf ("%c", *p);
+              p++;
+              level++;
+            }
+          else if (*p == ')')
+            {
+              gpgrt_log_printf ("%c", *p);
+              p++;
+              if (--level <= 0 )
+                return;
+            }
+          else if (!digitp (p))
+            {
+              gpgrt_log_printf ("[invalid s-exp]");
+              return;
+            }
+          else
+            {
+              char *endp;
+              const unsigned char *s;
+              unsigned long len, n;
+
+              len = strtoul (p, &endp, 10);
+              p = endp;
+              if (*p != ':')
+                {
+                  gpgrt_log_printf ("[invalid s-exp]");
+                  return;
+                }
+              p++;
+              for (s=p,n=0; n < len; n++, s++)
+                if ( !((*s >= 'a' && *s <= 'z')
+                       || (*s >= 'A' && *s <= 'Z')
+                       || (*s >= '0' && *s <= '9')
+                       || *s == '-' || *s == '.'))
+                  break;
+              if (n < len)
+                {
+                  gpgrt_log_printf ("#");
+                  for (n=0; n < len; n++, p++)
+                    gpgrt_log_printf ("%02X", *p);
+                  gpgrt_log_printf ("#");
+                }
+              else
+                {
+                  for (n=0; n < len; n++, p++)
+                    gpgrt_log_printf ("%c", *p);
+                }
+            }
+        }
+    }
+  gpgrt_log_printf ("\n");
+}
+#endif /* debug helper */
 
 
 /**
@@ -215,8 +285,8 @@ ksba_certreq_set_siginfo (ksba_certreq_t cr, ksba_const_sexp_t siginfo)
   xfree (cr->x509.siginfo.der);
   cr->x509.siginfo.der = NULL;
 
-  return _ksba_algoinfo_from_sexp (siginfo, &cr->x509.siginfo.der,
-                                   &cr->x509.siginfo.derlen);
+  return _ksba_keyinfo_from_sexp (siginfo, 1, &cr->x509.siginfo.der,
+                                  &cr->x509.siginfo.derlen);
 }
 
 
@@ -350,9 +420,10 @@ ksba_certreq_set_public_key (ksba_certreq_t cr, ksba_const_sexp_t key)
 {
   if (!cr)
     return gpg_error (GPG_ERR_INV_VALUE);
+
   xfree (cr->key.der);
   cr->key.der = NULL;
-  return _ksba_keyinfo_from_sexp (key, &cr->key.der, &cr->key.derlen);
+  return _ksba_keyinfo_from_sexp (key, 0, &cr->key.der, &cr->key.derlen);
 }
 
 
@@ -406,8 +477,10 @@ ksba_certreq_add_extension (ksba_certreq_t cr,
 gpg_error_t
 ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
 {
-  const char *s, *endp;
-  unsigned long n;
+  const unsigned char *s, *saved;
+  char *buf = NULL;
+  unsigned long n, len;
+  int pass, nparam;
 
   if (!cr)
     return gpg_error (GPG_ERR_INV_VALUE);
@@ -417,24 +490,17 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
     return gpg_error (GPG_ERR_INV_SEXP);
   s++;
 
-  n = strtoul (s, (char**)&endp, 10);
-  s = endp;
-  if (!n || *s!=':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
-  s++;
-  if (n != 7 || memcmp (s, "sig-val", 7))
+  if (!(n = snext (&s)))
+    return gpg_error (GPG_ERR_INV_SEXP);
+  if (!smatch (&s, 7, "sig-val"))
     return gpg_error (GPG_ERR_UNKNOWN_SEXP);
-  s += 7;
   if (*s != '(')
     return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
   s++;
 
   /* break out the algorithm ID */
-  n = strtoul (s, (char**)&endp, 10);
-  s = endp;
-  if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
-  s++;
+  if (!(n = snext (&s)))
+    return gpg_error (GPG_ERR_INV_SEXP);
   xfree (cr->sig_val.algo);
   if (n==3 && s[0] == 'r' && s[1] == 's' && s[2] == 'a')
     { /* kludge to allow "rsa" to be passed as algorithm name */
@@ -449,45 +515,111 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
         return gpg_error (GPG_ERR_ENOMEM);
       memcpy (cr->sig_val.algo, s, n);
       cr->sig_val.algo[n] = 0;
+      if (!memcmp (s, "eddsa", 5))
+        cr->sig_val.is_ecc = 2;
     }
   s += n;
 
-  /* And now the values - FIXME: For now we only support one */
-  /* fixme: start loop */
-  if (*s != '(')
-    return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
-  s++;
-  n = strtoul (s, (char**)&endp, 10);
-  s = endp;
-  if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP);
-  s++;
-  s += n; /* ignore the name of the parameter */
+  if (cr->sig_val.is_ecc == 2
+      || !strcmp (cr->sig_val.algo, "1.3.101.112")           /* Ed25519 */
+      || !strcmp (cr->sig_val.algo, "1.3.101.113"))          /* Ed448   */
+    cr->sig_val.is_ecc = 2;
+  else if (!strcmp (cr->sig_val.algo, "1.2.840.10045.4.1")   /* with-sha1   */
+        || !strcmp (cr->sig_val.algo, "1.2.840.10045.4.3.1") /* with-sha224 */
+        || !strcmp (cr->sig_val.algo, "1.2.840.10045.4.3.2") /* with-sha256 */
+        || !strcmp (cr->sig_val.algo, "1.2.840.10045.4.3.3") /* with-sha384 */
+        || !strcmp (cr->sig_val.algo, "1.2.840.10045.4.3.4"))/* with-sha512 */
+    cr->sig_val.is_ecc = 1;
+  else
+    cr->sig_val.is_ecc = 0;
 
-  if (!digitp(s))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* but may also be an invalid one */
-  n = strtoul (s, (char**)&endp, 10);
-  s = endp;
-  if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP);
-  s++;
-  if (n > 1 && !*s)
-    { /* We might have a leading zero due to the way we encode
-         MPIs - this zero should not go into the BIT STRING.  */
-      s++;
-      n--;
+  /* And now the values.
+   *
+   * If there is only one value, the signature is simply
+   * that value. Otherwise, the signature is a DER-encoded
+   * SEQUENCE of INTEGERs representing the different values.
+   *
+   * We need three passes over the values:
+   * - first pass is to get the number of values (nparam);
+   * - second pass is to compute the total length (len);
+   * - third pass is to build the final signature. */
+  for (pass = 1, nparam = len = 0, saved = s; pass < 4; pass++)
+    {
+      s = saved;
+
+      if (pass == 3)
+        {
+          size_t needed = len;
+          if (cr->sig_val.is_ecc != 2 && nparam > 1)
+            needed += _ksba_ber_count_tl (TYPE_SEQUENCE, CLASS_UNIVERSAL,
+                                          1, len);
+
+          xfree (cr->sig_val.value);
+          cr->sig_val.value = xtrymalloc (needed);
+          if (!cr->sig_val.value)
+            return gpg_error (GPG_ERR_ENOMEM);
+          cr->sig_val.valuelen = needed;
+          buf = cr->sig_val.value;
+
+          if (cr->sig_val.is_ecc != 2 && nparam > 1)
+            buf += _ksba_ber_encode_tl (buf, TYPE_SEQUENCE,
+                                        CLASS_UNIVERSAL, 1, len);
+        }
+
+      while (*s != ')')
+        {
+          if (*s != '(')
+            return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+          s++;
+          if (!(n = snext (&s)))
+            return gpg_error (GPG_ERR_INV_SEXP);
+          s += n; /* Ignore the name of the parameter. */
+
+          if (!digitp (s))
+            return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+          if (!(n = snext (&s)))
+            return gpg_error (GPG_ERR_INV_SEXP);
+
+          if (pass == 1)
+            nparam++;
+          else if (pass == 2)
+            {
+              if (cr->sig_val.is_ecc == 2 || nparam == 1)
+                len += n;
+              else
+                len += _ksba_ber_count_tl (TYPE_INTEGER, CLASS_UNIVERSAL, 0,
+                                           *s >= 0x80? n + 1 : n)
+                       + (*s >= 0x80? n + 1 : n);
+            }
+          else if (pass == 3)
+            {
+              if (cr->sig_val.is_ecc == 2 || nparam == 1)
+                {
+                  memcpy (buf, s, n);
+                  buf += n;
+                }
+              else
+                {
+                  if (*s >= 0x80)
+                   { /* Add leading zero byte.  */
+                     buf += _ksba_ber_encode_tl (buf, TYPE_INTEGER,
+                                                 CLASS_UNIVERSAL, 0, n + 1);
+                     *buf++ = 0;
+                   }
+                 else
+                   buf += _ksba_ber_encode_tl (buf, TYPE_INTEGER,
+                                               CLASS_UNIVERSAL, 0, n);
+                  memcpy (buf, s, n);
+                  buf += n;
+                }
+            }
+
+          s += n;
+          if (*s != ')')
+            return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+          s++;
+        }
     }
-  xfree (cr->sig_val.value);
-  cr->sig_val.value = xtrymalloc (n);
-  if (!cr->sig_val.value)
-    return gpg_error (GPG_ERR_ENOMEM);
-  memcpy (cr->sig_val.value, s, n);
-  cr->sig_val.valuelen = n;
-  s += n;
-  if ( *s != ')')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* but may also be an invalid one */
-  s++;
-  /* fixme: end loop over parameters */
 
   /* we need 2 closing parenthesis */
   if ( *s != ')' || s[1] != ')')
@@ -915,83 +1047,63 @@ static gpg_error_t
 sign_and_write (ksba_certreq_t cr)
 {
   gpg_error_t err;
-  ksba_writer_t writer;
-  void *value = NULL;
+  ksba_der_t dbld;
+  unsigned char *value = NULL;
   size_t valuelen;
 
-  err = ksba_writer_new (&writer);
-  if (err)
-    goto leave;
-  err = ksba_writer_set_mem (writer, 2048);
-  if (err)
-    goto leave;
+  dbld = _ksba_der_builder_new (0);
+  if (!dbld)
+    {
+      err = gpg_error_from_syserror ();
+      goto leave;
+    }
 
-  /* store the cri */
+  /* Start outer sequence.  */
+  _ksba_der_add_tag (dbld, 0, TYPE_SEQUENCE);
+
+  /* Store the cri */
   if (!cr->cri.der)
     {
       err = gpg_error (GPG_ERR_MISSING_VALUE);
       goto leave;
     }
-  err = ksba_writer_write (writer, cr->cri.der, cr->cri.derlen);
-  if (err)
-    goto leave;
+  _ksba_der_add_der (dbld, cr->cri.der, cr->cri.derlen);
 
-  /* store the signatureAlgorithm */
+  /* Store the signatureAlgorithm */
   if (!cr->sig_val.algo)
     return gpg_error (GPG_ERR_MISSING_VALUE);
-  err = _ksba_der_write_algorithm_identifier (writer,
-                                              cr->sig_val.algo, NULL, 0);
-  if (err)
-    goto leave;
+  _ksba_der_add_tag (dbld, 0, TYPE_SEQUENCE);
+  _ksba_der_add_oid (dbld, cr->sig_val.algo);
+  if (!cr->sig_val.is_ecc)
+    _ksba_der_add_ptr (dbld, 0, TYPE_NULL, NULL, 0);
+  _ksba_der_add_end (dbld);
 
-  /* write the signature */
-  err = _ksba_ber_write_tl (writer, TYPE_BIT_STRING, CLASS_UNIVERSAL, 0,
-                            1 + cr->sig_val.valuelen);
-  if (!err)
-    err = ksba_writer_write (writer, "", 1);
-  if (!err)
-    err = ksba_writer_write (writer, cr->sig_val.value, cr->sig_val.valuelen);
-  if (err)
-    goto leave;
+  /* Write the signature */
+  _ksba_der_add_bts (dbld, cr->sig_val.value, cr->sig_val.valuelen, 0);
 
-  /* pack it into the outer sequence */
-  value = ksba_writer_snatch_mem (writer, &valuelen);
-  if (!value)
-    {
-      err = gpg_error (GPG_ERR_ENOMEM);
-      goto leave;
-    }
-  err = ksba_writer_set_mem (writer, valuelen+10);
-  if (err)
-    goto leave;
-  /* write outer sequence */
-  err = _ksba_ber_write_tl (writer, TYPE_SEQUENCE, CLASS_UNIVERSAL,
-                            1, valuelen);
-  if (!err)
-    err = ksba_writer_write (writer, value, valuelen);
-  if (err)
-    goto leave;
+  /* End outer sequence.  */
+  _ksba_der_add_end (dbld);
 
   /* and finally write the result */
-  xfree (value);
-  value = ksba_writer_snatch_mem (writer, &valuelen);
-  if (!value)
-    err = gpg_error (GPG_ERR_ENOMEM);
-  else if (!cr->writer)
+  err = _ksba_der_builder_get (dbld, &value, &valuelen);
+  if (err)
+    goto leave;
+
+  if (!cr->writer)
     err = gpg_error (GPG_ERR_MISSING_ACTION);
   else
     err = ksba_writer_write (cr->writer, value, valuelen);
 
  leave:
-  ksba_writer_release (writer);
+  ksba_der_release (dbld);
   xfree (value);
   return err;
 }
 
 
 
-/* The main function to build a certificate request.  It used used in
-   a loop so allow for interaction between the function and the caller */
+/* The main function to build a certificate request.  It is used in a
+ * loop to allow for interaction between the function and the caller */
 gpg_error_t
 ksba_certreq_build (ksba_certreq_t cr, ksba_stop_reason_t *r_stopreason)
 {
